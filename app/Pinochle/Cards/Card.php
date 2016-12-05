@@ -22,8 +22,13 @@ class Card
 
     private $value;
 
-    public function __construct($rank, $suit)
+    public function __construct($rank, $suit = null)
     {
+        if($suit === null) {
+            $suit = $rank & self::MASK_SUIT;
+            $rank = $rank & self::MASK_RANK;
+        }
+
         if(!array_key_exists($rank, static::getRanks()))
             throw new \InvalidArgumentException('Invalid Rank Provided');
 
