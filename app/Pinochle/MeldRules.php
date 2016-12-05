@@ -4,7 +4,7 @@ namespace App\Pinochle;
 
 use App\Pinochle\Cards\Card;
 
-class Meld
+class MeldRules
 {
     protected $meldTable = [];
 

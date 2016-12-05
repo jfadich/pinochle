@@ -95,4 +95,9 @@ class Card
     {
         return $this->value;
     }
+
+    public function __toString()
+    {
+        return $this->friendlyName();
+    }
 }
