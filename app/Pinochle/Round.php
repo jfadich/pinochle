@@ -2,6 +2,7 @@
 
 namespace App\Pinochle;
 
+use App\Pinochle\Cards\Hand;
 use Illuminate\Database\Eloquent\Model;
 use Jfadich\JsonProperty\JsonPropertyInterface;
 use Jfadich\JsonProperty\JsonPropertyTrait;
@@ -17,7 +18,7 @@ class Round extends Model implements JsonPropertyInterface
     const PHASE_MELDING = 4;
     const PHASE_PLAYING = 5;
 
-    protected $jsonProperty = ['auction', 'buy'];
+    protected $jsonProperty = ['auction', 'buy', 'hands', 'meld'];
 
     public function game()
     {
@@ -27,6 +28,21 @@ class Round extends Model implements JsonPropertyInterface
     public function plays()
     {
         return $this->hasMany(Play::class, 'round_id');
+    }
+
+    public function getHands()
+    {
+        foreach($this->hands()->all() as $k => $cards) {
+            if(!$cards instanceof Hand)
+                $this->hands()->set($k, new Hand($cards));
+        }
+
+        return $this->hands()->all();
+    }
+
+    public function phase(int $phase)
+    {
+        return $this->phase === $phase;
     }
 
     public function addBid($bid, $seat)

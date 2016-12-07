@@ -8,7 +8,10 @@
                 <div class="panel-heading">Dashboard</div>
 
                 <div class="panel-body">
-                    You are logged in!
+                    <form action="/api/games" method="post">
+                        <input name="name" value="">
+                        <input type="submit">
+                    </form>
                 </div>
             </div>
         </div>

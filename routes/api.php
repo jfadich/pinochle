@@ -16,3 +16,11 @@ use Illuminate\Http\Request;
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
+
+Route::group(['prefix' => 'games'], function($router) {
+    Route::post('/', 'GameController@store');
+    Route::get('/{game}/players', 'GameController@getPlayers');
+    Route::post('/{game}/players', 'GameController@addPlayer');
+    Route::post('/{game}/bids', 'GameController@placeBid');
+    Route::post('/{game}/deal', 'GameController@deal');
+});

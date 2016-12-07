@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Player extends Model
 {
+    public $fillable = ['seat', 'user_id'];
+
     public function game()
     {
         return $this->belongsTo(Game::class, 'game_id');

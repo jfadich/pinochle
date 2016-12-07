@@ -4,6 +4,8 @@ namespace App\Pinochle;
 
 
 use App\Exceptions\PinochleRuleException;
+use App\Pinochle\Cards\Deck;
+use App\Pinochle\Cards\Hand;
 
 class Pinochle
 {
@@ -11,15 +13,21 @@ class Pinochle
 
     protected $currentRound;
 
-    public static function make(Game $game = null)
+    public static function make($game)
     {
-        if($game === null) {
-            $game = Game::create(['name' => 'Pinochle Game']);
-
+        if(!$game instanceof Game) {
+            $game = Game::create(['name' => $game]);
             $game->rounds()->create([]);
+
+            // TODO Add 'addPlayer' methods
+            $game->players()->create(['seat' => 0, 'user_id' => 1]);
+            $game->players()->create(['seat' => 1, 'user_id' => 1]);
+            $game->players()->create(['seat' => 2, 'user_id' => 1]);
+            $game->players()->create(['seat' => 3, 'user_id' => 1]);
+            // end todo
         }
 
-        return (new Pinochle())->setGame($game);
+        return (new static())->setGame($game);
     }
 
     public function setGame(Game $game)
@@ -29,16 +37,33 @@ class Pinochle
         return $this;
     }
 
+    public function getGame()
+    {
+        return $this->game;
+    }
+
     public function deal()
     {
-        if($this->game->players->count !== 4) {
+        if($this->game->players->count() !== 4) {
             throw new PinochleRuleException('Not Enough Players');
         }
+
+        $hands = Deck::make()->deal();
+        $hands->each(function(Hand $hand, $key) {
+            $this->game->currentRound->hands()->set("seat_$key", $hand);
+        });
+
+        $this->game->currentRound->phase = Round::PHASE_BIDDING;
+        $this->setNextPlayer();
+
+        $this->game->currentRound->save();
+
+        return $this;
     }
 
     public function placeBid(Player $player, $bid)
     {
-        if($this->game->currentRound->phase !== Round::PHASE_BIDDING)
+        if(!$this->game->currentRound->phase(Round::PHASE_BIDDING))
             throw new PinochleRuleException('Game is currently not bidding');
 
         if($this->game->getCurrentPlayer()->id !== $player->id)

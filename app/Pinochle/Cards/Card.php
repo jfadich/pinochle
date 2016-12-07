@@ -2,7 +2,7 @@
 
 namespace App\Pinochle\Cards;
 
-class Card
+class Card implements \JsonSerializable
 {
     const RANK_ACE      = 0b101;
     const RANK_TEN      = 0b100;
@@ -99,5 +99,9 @@ class Card
     public function __toString()
     {
         return $this->friendlyName();
+    }
+
+    public function jsonSerialize() {
+        return $this->value;
     }
 }

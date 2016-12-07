@@ -6,7 +6,7 @@ namespace App\Pinochle\Cards;
 use App\Pinochle\MeldRules;
 use Illuminate\Support\Collection;
 
-class Hand
+class Hand implements \JsonSerializable
 {
     private $cards;
 
@@ -19,10 +19,13 @@ class Hand
 
     public function __construct($cards)
     {
-        if($cards instanceof Collection)
-            $this->cards = $cards;
-        elseif(is_array($cards))
-            $this->cards = collect($cards);
+        $this->cards = collect([]);
+        foreach($cards as $card) {
+            if(!$card instanceof Card)
+                $card = new Card($card);
+
+            $this->cards->push($card);
+        }
 
         $this->meldRules = new MeldRules;
     }
@@ -94,5 +97,10 @@ class Hand
         });
 
         return collect($suitValues)->sort()->reverse()->flip()->first();
+    }
+
+    function jsonSerialize()
+    {
+        return $this->cards->values();
     }
 }
