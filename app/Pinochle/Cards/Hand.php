@@ -103,7 +103,7 @@ class Hand implements \JsonSerializable
     {
         $pass = 0;
         $trumpPower = 10;
-        $acePower = 4;
+        $acePower = 5;
         $suitStats = [];
 
         foreach(Card::getSuits() as $id => $name) {
@@ -145,13 +145,18 @@ class Hand implements \JsonSerializable
                     } else {
                         if($pass < 4)
                             $pass++;
+                        else
+                            $suitStats[$suit]['power'] -= (10 - $suitStats[$suit]['consecutive']);
                     }
+                    break;
+                case Card::RANK_NINE:
+                    $suitStats[$suit]['power'] -= 5;
                     break;
                 default:
                     if($pass < 4)
                         $pass++;
                     else
-                        $suitStats[$suit]['power'] -= (4 - $rank) * (6 - $suitStats[$suit]['consecutive']);
+                        $suitStats[$suit]['power'] -= (3 - $rank) * (6 - $suitStats[$suit]['consecutive']);
                     break;
             }
         }
