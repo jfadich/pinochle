@@ -59,22 +59,40 @@ class Hand
 
     public function checkMeld($meldTemplate, $points, $doublePoints = null)
     {
-        $melded = false;
+        $remainder = false;
 
         if($meldTemplate->diff($this->cards)->count() === 0) {
+            $remainder = $this->cards->diff($meldTemplate);
             $double = $meldTemplate->merge($meldTemplate);
 
-            if($double->diff($this->cards)->count() === 0 && $doublePoints !== false) {
+            if($meldTemplate->diff($remainder)->count() === 0 && $doublePoints !== false) {
+                $remainder = $this->cards->diff($remainder);
                 $this->meld['total'] += $doublePoints ?? $points * 10;
                 $this->meld['cards'][] = $double;
             } else {
                 $this->meld['total'] += $points;
                 $this->meld['cards'][] = $meldTemplate;
             }
-
-            $melded = true;
         }
 
-        return $melded;
+        return $remainder;
+    }
+
+    public function callTrump()
+    {
+        $suits = $this->cards->groupBy(function(Card $card) {
+            return $card->getSuit();
+        });
+
+        $suitValues= [];
+        $suits->each(function($cards) use (&$suitValues) {
+            $hasAce = $cards->first()->getRank() === Card::RANK_ACE;
+
+            $value = ($hasAce ? 20 : 15) * $cards->count();
+
+            $suitValues[$cards->first()->getSuit()] = $value;
+        });
+
+        return collect($suitValues)->sort()->reverse()->flip()->first();
     }
 }
