@@ -15,15 +15,15 @@ class CreateRoundsTable extends Migration
     {
         Schema::create('rounds', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('round_number');
-            $table->string('phase')->default('dealing');
-            $table->unsignedInteger('lead_seat');
-            $table->unsignedInteger('active_seat');
+            $table->unsignedSmallInteger('round_number')->default(1);
+            $table->unsignedTinyInteger('phase')->default(0);
+            $table->unsignedTinyInteger('lead_seat')->default(0);
+            $table->unsignedTinyInteger('active_seat')->default(0);
             $table->unsignedInteger('game_id');
-            $table->text('winning_bid');
-            $table->text('auction');
-            $table->text('hands');
-            $table->text('meld');
+            $table->text('buy')->nullable();
+            $table->text('auction')->nullable();
+            $table->text('hands')->nullable();
+            $table->text('meld')->nullable();
             $table->timestamps();
 
             $table->foreign('game_id')->references('id')->on('games')->onUpdate('CASCADE')->onDelete('CASCADE');

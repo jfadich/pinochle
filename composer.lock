@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "86a325180c86fbe65d8d0a9b957e824d",
-    "content-hash": "96854d489bd726d5a6bf8c3f41982f04",
+    "hash": "f0170fa53d9bf0bf7217b1a36c2bc252",
+    "content-hash": "b7adec6c2b24799113ad8edd7d7b619b",
     "packages": [
         {
             "name": "classpreloader/classpreloader",
@@ -305,6 +305,48 @@
                 "tokenizer"
             ],
             "time": "2015-12-05 17:17:57"
+        },
+        {
+            "name": "jfadich/json-property",
+            "version": "0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/jfadich/json-property.git",
+                "reference": "7a40f1b20254214930bcca4571f6866f3bf91bc6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/jfadich/json-property/zipball/7a40f1b20254214930bcca4571f6866f3bf91bc6",
+                "reference": "7a40f1b20254214930bcca4571f6866f3bf91bc6",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/support": "^5.1",
+                "php": ">=5.5.9"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "4.0.*"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Jfadich\\JsonProperty\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "John Fadich"
+                }
+            ],
+            "description": "Transform an object property into an enhanced array",
+            "keywords": [
+                "json"
+            ],
+            "time": "2015-12-13 07:09:52"
         },
         {
             "name": "laravel/framework",

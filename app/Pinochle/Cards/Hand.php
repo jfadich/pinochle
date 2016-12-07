@@ -63,9 +63,9 @@ class Hand
 
         if($meldTemplate->diff($this->cards)->count() === 0) {
             $remainder = $this->cards->diff($meldTemplate);
-            $double = $meldTemplate->merge($meldTemplate);
 
-            if($meldTemplate->diff($remainder)->count() === 0 && $doublePoints !== false) {
+            if($doublePoints !== false && $meldTemplate->diff($remainder)->count() === 0) {
+                $double = $meldTemplate->merge($meldTemplate);
                 $remainder = $this->cards->diff($remainder);
                 $this->meld['total'] += $doublePoints ?? $points * 10;
                 $this->meld['cards'][] = $double;
@@ -88,9 +88,9 @@ class Hand
         $suits->each(function($cards) use (&$suitValues) {
             $hasAce = $cards->first()->getRank() === Card::RANK_ACE;
 
-            $value = ($hasAce ? 20 : 15) * $cards->count();
+            $suitPotential = ($hasAce ? 20 : 15) * $cards->count();
 
-            $suitValues[$cards->first()->getSuit()] = $value;
+            $suitValues[$cards->first()->getSuit()] = $suitPotential;
         });
 
         return collect($suitValues)->sort()->reverse()->flip()->first();
