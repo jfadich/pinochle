@@ -99,7 +99,69 @@ class Hand implements \JsonSerializable
         return collect($suitValues)->sort()->reverse()->flip()->first();
     }
 
-    function jsonSerialize()
+    public function getPlayingPower($trump, $sum = true)
+    {
+        $pass = 0;
+        $trumpPower = 10;
+        $acePower = 4;
+        $suitStats = [];
+
+        foreach(Card::getSuits() as $id => $name) {
+            $suitStats[$id] = [
+                'aces' => 0,
+                'consecutive' => 0,
+                'power' => 0
+            ];;
+        }
+
+        foreach($this->cards as $card) {
+            $suit = $card->getSuit();
+            $rank = $card->getRank();
+
+            if($card->isRank(Card::RANK_ACE))
+                $suitStats[$suit]['aces']++;
+
+            if($card->isSuit($trump)) {
+                $suitStats[$suit]['power'] += $trumpPower + $rank + ($suitStats[$suit]['aces'] * $acePower);
+                continue;
+            }
+
+            switch($rank)
+            {
+                case Card::RANK_ACE:
+                    $suitStats[$suit]['consecutive']++;
+                    $suitStats[$suit]['power'] += ($suitStats[$suit]['aces'] * $acePower);
+                    break;
+                case Card::RANK_TEN:
+                    if($suitStats[$suit]['consecutive'] >= 1)
+                        $suitStats[$suit]['consecutive']++;
+
+                    $suitStats[$suit]['power'] += ($rank * $suitStats[$suit]['consecutive']);
+                    break;
+                case Card::RANK_KING:
+                    if($suitStats[$suit]['consecutive'] >= 3) {
+                        $suitStats[$suit]['consecutive']++;
+                        $suitStats[$suit]['power'] += $rank + $suitStats[$suit]['consecutive'];
+                    } else {
+                        if($pass < 4)
+                            $pass++;
+                    }
+                    break;
+                default:
+                    if($pass < 4)
+                        $pass++;
+                    else
+                        $suitStats[$suit]['power'] -= (4 - $rank) * (6 - $suitStats[$suit]['consecutive']);
+                    break;
+            }
+        }
+
+        $suitStats = collect($suitStats);
+
+        return $suitStats->sum('power');
+    }
+
+    public function jsonSerialize()
     {
         return $this->cards->values();
     }

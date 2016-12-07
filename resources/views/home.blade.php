@@ -12,6 +12,12 @@
                         <input name="name" value="">
                         <input type="submit">
                     </form>
+                    <hr>
+                    <ul>
+                    @foreach($games as $game)
+                        <li><a href="/games/{{$game->id}}">{{ $game->name }}</a> </li>
+                        @endforeach
+                    </ul>
                 </div>
             </div>
         </div>

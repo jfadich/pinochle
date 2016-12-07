@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container">
-        <h1>{{ $game->name }}</h1>
+        <h1>{{ $game->name }} : {{ $game->currentRound->phase }}</h1>
         <!-- Nav tabs -->
         <ul class="nav nav-tabs" role="tablist">
             @foreach($game->currentRound->getHands() as $key => $hand)
@@ -23,19 +23,64 @@
 
                     @endforeach
                 </div>
-                @if($key === "seat_{$game->currentRound->active_seat}")
+<hr>
+
                 <div class="row">
-                    <form action="/api/games/{{ $game->id }}/bids" method="post">
-                        <input type="hidden" name="player" value="{{ $game->getCurrentPlayer()->id }}">
-                        <input name="bid" value="{{ $game->currentRound->getCurrentBid()['bid'] + 10 }}">
-                        <input type="submit">
-                    </form>
-                    <form action="/api/games/{{ $game->id }}/bids" method="POST">
-                        <input type="hidden" name="player" value="{{ $game->getCurrentPlayer()->id }}">
-                        <input type="submit" name="bid" value="pass">
-                    </form>
+                    <?php $trump = $hand->callTrump(); $meld = $hand->getMeld($trump); ?>
+                    <div class="col-md-8">
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#{{ $key }}-meld" role="tab" data-toggle="tab">Meld Dealt ({{ $meld['total'] }}) </a></li>
+                            <li role="presentation"><a href="#{{ $key }}-potential" role="tab" data-toggle="tab">Meld Potential ({{ $meld['total'] }}) </a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="{{ $key }}-meld">
+                                @foreach($meld['cards'] as $set)
+                                    @foreach($set as $k => $card)
+                                        <div class="col-md-2">
+                                            <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
+                                        </div>
+                                    @endforeach
+                                    <br>
+                                @endforeach
+                            </div>
+                            <div role="tabpanel" class="tab-pane" id="{{ $key }}-potential">
+                                so much potential
+                            </div>
+                        </div>
+
+
+
+
+                    </div>
+                    <div class="col-md-4">
+                        @if($key === "seat_{$game->currentRound->active_seat}")
+                            <div class="row">
+                                <form action="/api/games/{{ $game->id }}/bids" method="post">
+                                    <input type="hidden" name="player" value="{{ $game->getCurrentPlayer()->id }}">
+                                    <input name="bid" value="{{ $game->currentRound->getCurrentBid()['bid'] + 10 }}">
+                                    <input type="submit">
+                                </form>
+                                <form action="/api/games/{{ $game->id }}/bids" method="POST">
+                                    <input type="hidden" name="player" value="{{ $game->getCurrentPlayer()->id }}">
+                                    <input type="submit" name="bid" value="pass">
+                                </form>
+                            </div>
+                        @endif
+
+                        <table class="table table-bordered">
+                            <tr>
+                                <td>Prefered Trump</td>
+                                <td> {{ (new App\Pinochle\Cards\Card($trump))->getSuitName() }}</td>
+                            </tr>
+                            <tr>
+                                <td>Play Power</td>
+                                <td>{{ $hand->getPlayingPower($trump) }}</td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-                    @endif
+
+
 
             </div>
             @endforeach

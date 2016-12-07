@@ -65,6 +65,16 @@ class Card implements \JsonSerializable
         return $this->getRankName($short) .' of '. $this->getSuitName($short);
     }
 
+    public function isRank(int $rank)
+    {
+        return $this->getRank() === $rank;
+    }
+
+    public function isSuit(int $suit)
+    {
+        return $this->getSuit() === $suit;
+    }
+
     public function getSuitName() : string
     {
         $suits = static::getSuits();
