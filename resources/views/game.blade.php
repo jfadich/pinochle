@@ -26,25 +26,34 @@
 <hr>
 
                 <div class="row">
-                    <?php $trump = $hand->callTrump(); $meld = $hand->getMeld($trump); ?>
+                    <?php $trump = $hand->callTrump(); $meld = $hand->getMeld($trump); $potential = $hand->getMeldPotential($trump) ?>
                     <div class="col-md-8">
                         <ul class="nav nav-tabs" role="tablist">
-                            <li role="presentation" class="active"><a href="#{{ $key }}-meld" role="tab" data-toggle="tab">Meld Dealt ({{ $meld['total'] }}) </a></li>
-                            <li role="presentation"><a href="#{{ $key }}-potential" role="tab" data-toggle="tab">Meld Potential ({{ $meld['total'] }}) </a></li>
+                            <li role="presentation" class="active"><a href="#{{ $key }}-potential" role="tab" data-toggle="tab">Meld Potential ({{ $potential['total'] }}) </a></li>
+                            <li role="presentation"><a href="#{{ $key }}-meld" role="tab" data-toggle="tab">Meld Dealt ({{ $meld['total'] }}) </a></li>
                         </ul>
                         <div class="tab-content">
-                            <div role="tabpanel" class="tab-pane active" id="{{ $key }}-meld">
+                            <div role="tabpanel" class="tab-pane" id="{{ $key }}-meld">
                                 @foreach($meld['cards'] as $set)
-                                    @foreach($set as $k => $card)
-                                        <div class="col-md-2">
-                                            <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
-                                        </div>
-                                    @endforeach
-                                    <br>
+                                    <div class="row">
+                                        @foreach($set as $k => $card)
+                                            <div class="col-md-2">
+                                                <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
+                                            </div>
+                                        @endforeach
+                                    </div>
                                 @endforeach
                             </div>
-                            <div role="tabpanel" class="tab-pane" id="{{ $key }}-potential">
-                                so much potential
+                            <div role="tabpanel" class="tab-pane active" id="{{ $key }}-potential">
+                                @foreach($potential['cards'] as $set)
+                                    <div class="row">
+                                        @foreach($set as $k => $card)
+                                            <div class="col-md-2">
+                                                <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
 
@@ -75,6 +84,20 @@
                             <tr>
                                 <td>Play Power</td>
                                 <td>{{ $hand->getPlayingPower($trump) }}</td>
+                            </tr>
+                            <tr>
+                                <th colspan="2">
+                                    Wishlist
+                                </th>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    @foreach($hand->getMeldWishlist($trump) as $k => $card)
+                                        <div class="col-md-3">
+                                            <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
+                                        </div>
+                                    @endforeach
+                                </td>
                             </tr>
                         </table>
                     </div>

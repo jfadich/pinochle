@@ -35,10 +35,15 @@ class Hand implements \JsonSerializable
         return $this->cards;
     }
 
-    public function getMeld($trump)
+    public function getMeld($trump, $cards = null)
     {
         if(is_int($trump))
             $trump = new Card($trump);
+
+        $this->meld = [
+            'total' => 0,
+            'cards' => []
+        ];
 
         $this->checkMeld($this->meldRules->pinochle(), 40, 300);
         if(!$this->checkMeld($this->meldRules->run($trump->getSuit()), 150)) {
@@ -52,6 +57,7 @@ class Hand implements \JsonSerializable
             $this->checkMeld($this->meldRules->marriage($suit), 20, 40);
         }
 
+        $this->checkMeld($this->meldRules->lowestTrump($trump->getSuit()), 10, 20);
         $this->checkMeld($this->meldRules->fourOfAKind(Card::RANK_ACE), 100);
         $this->checkMeld($this->meldRules->fourOfAKind(Card::RANK_KING), 80);
         $this->checkMeld($this->meldRules->fourOfAKind(Card::RANK_QUEEN), 60);
@@ -60,12 +66,60 @@ class Hand implements \JsonSerializable
         return $this->meld;
     }
 
-    public function checkMeld($meldTemplate, $points, $doublePoints = null)
+    public function getMeldPotential($trump)
+    {
+        $this->meld = [
+            'total' => 0,
+            'cards' => []
+        ];
+
+        $hand = $this->cards;
+        $wishList = $this->getMeldWishList($trump, true);
+
+        if($wishList->count() < 4) {
+            $allTrump = $this->meldRules->run($trump)->merge($this->meldRules->run($trump));
+            $wishList->merge($allTrump->diff($hand)->chunk(4 - $wishList->count())->first());
+        }
+
+        $this->cards = $hand->merge($wishList);
+        $this->cards = $this->cards->diff($this->getPass($trump));
+        $potential = $this->getMeld($trump);
+
+        $this->cards = $hand;
+
+        return $potential;
+    }
+
+    public function getMeldWishList($trump, $fillTrump = false)
+    {
+        $wishList = collect([]);
+
+        $this->checkMeldPotential($this->meldRules->fourOfAKind(Card::RANK_ACE), $wishList);
+        $this->checkMeldPotential($this->meldRules->run($trump), $wishList);
+        $this->checkMeldPotential($this->meldRules->pinochle()->merge($this->meldRules->pinochle()), $wishList, false);
+
+        if($fillTrump && $wishList->count() < 4) {
+            $allTrump = $this->meldRules->run($trump)->merge($this->meldRules->run($trump));
+            $wishList = $wishList->merge($allTrump->diff($this->cards)->chunk(4 - $wishList->count())->first());
+        }
+
+        return $wishList;
+    }
+
+    protected function checkMeld($meldTemplate, $points, $doublePoints = null)
     {
         $remainder = false;
 
         if($meldTemplate->diff($this->cards)->count() === 0) {
-            $remainder = $this->cards->diff($meldTemplate);
+            $found = collect([]);
+            $remainder = $this->cards->filter(function($card, $key) use ($found, $meldTemplate) {
+                if($meldTemplate->contains($card) && !$found->contains($card)) {
+                    $found->push($card);
+                    return false;
+                }
+
+                return true;
+            });
 
             if($doublePoints !== false && $meldTemplate->diff($remainder)->count() === 0) {
                 $double = $meldTemplate->merge($meldTemplate);
@@ -79,6 +133,42 @@ class Hand implements \JsonSerializable
         }
 
         return $remainder;
+    }
+
+    public function getPass($trump)
+    {
+        $suits = $this->getPlayingPower($trump, false)->sortBy('power');
+        $cards = $this->cards->sort(function($card) use($suits, $trump) {
+            return  $suits[$card->getSuit()]['power'] + $card->getRank();
+        });
+
+        $pass=collect([]);
+
+        foreach($cards as $card) {
+            if($card->isSuit($trump) || $card->isRank(Card::RANK_ACE))
+                continue;
+
+            $pass->push($card);
+
+            if($pass->count() >= 4)
+                return $pass;
+        }
+    }
+
+    protected function checkMeldPotential($meldTemplate, &$wishList, $double = true)
+    {
+        $tolerance = 0.25;
+        $hand = $this->cards->merge($wishList);
+        $missing = $meldTemplate->diff($hand);
+
+        if( ($missing->count() / $meldTemplate->count()) <= $tolerance && ($wishList->count() + $missing->count()) <= 4) {
+            $wishList = $wishList->merge($missing);
+
+            if($double)
+                return $this->checkMeldPotential($meldTemplate->merge($meldTemplate), $wishList, false);
+        }
+
+        return $wishList;
     }
 
     public function callTrump()
@@ -101,10 +191,12 @@ class Hand implements \JsonSerializable
 
     public function getPlayingPower($trump, $sum = true)
     {
+        $wishList = $this->getMeldWishList($trump);
         $pass = 0;
         $trumpPower = 10;
         $acePower = 5;
         $suitStats = [];
+        $cards = $this->cards->merge($wishList);
 
         foreach(Card::getSuits() as $id => $name) {
             $suitStats[$id] = [
@@ -114,7 +206,7 @@ class Hand implements \JsonSerializable
             ];;
         }
 
-        foreach($this->cards as $card) {
+        foreach($cards as $card) {
             $suit = $card->getSuit();
             $rank = $card->getRank();
 
@@ -163,7 +255,7 @@ class Hand implements \JsonSerializable
 
         $suitStats = collect($suitStats);
 
-        return $suitStats->sum('power');
+        return $sum ? $suitStats->sum('power') : $suitStats;
     }
 
     public function jsonSerialize()
