@@ -11,12 +11,13 @@ class Round extends Model implements JsonPropertyInterface
 {
     use JsonPropertyTrait;
 
-    const PHASE_DEALING = 0;
-    const PHASE_BIDDING = 1;
-    const PHASE_CALLING = 2;
-    const PHASE_PASSING = 3;
-    const PHASE_MELDING = 4;
-    const PHASE_PLAYING = 5;
+    const PHASE_DEALING = 'dealing';
+    const PHASE_BIDDING = 'bidding';
+    const PHASE_CALLING = 'calling';
+    const PHASE_PASSING = 'passing';
+    const PHASE_MELDING = 'melding';
+    const PHASE_PLAYING = 'playing';
+    const PHASE_COMPLETE = 'complete';
 
     protected $jsonProperty = ['auction', 'buy', 'hands', 'meld'];
 

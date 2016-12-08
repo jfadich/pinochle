@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\PinochleRuleException;
+use App\Pinochle\Cards\Card;
 use App\Pinochle\Game;
 use App\Pinochle\Pinochle;
 use App\Pinochle\Player;
@@ -11,6 +12,28 @@ use Illuminate\Http\Request;
 
 class GameController extends Controller
 {
+    public function analysis(Game $game)
+    {
+        $hands = collect([]);
+
+        foreach($game->currentRound->getHands() as $key => $hand) {
+            $trump = $hand->callTrump();
+
+            $hands->push([
+                'seat' => $key,
+                'cards' => $hand->getCards(),
+                'trump' => new Card($trump),
+                'meld'  => $hand->getMeld($trump),
+                'potential' => $hand->getMeldPotential($trump),
+                'play_power' => $hand->getPlayingPower($trump),
+                'wishlist' => $hand->getMeldWishList($trump),
+                'pass' => $hand->getPass($trump)
+            ]);
+        }
+
+        return view('game', compact('game', 'hands'));
+    }
+
     public function store(Request $request)
     {
         $this->validate($request, [
