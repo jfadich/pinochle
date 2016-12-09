@@ -75,9 +75,9 @@ class Card implements \JsonSerializable
         return $this->getSuit() === $suit;
     }
 
-    public function getSuitName() : string
+    public function getSuitName($short = false) : string
     {
-        $suits = static::getSuits();
+        $suits = static::getSuits($short);
         $suit = $this->getSuit();
 
         return $suits[$suit];

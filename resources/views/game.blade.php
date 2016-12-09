@@ -77,12 +77,27 @@
 
                         <table class="table table-bordered">
                             <tr>
-                                <td>Prefered Trump</td>
+                                <th colspan="2">Bid</th>
+                            </tr>
+                            <tr>
+                                <td>Preferred Trump</td>
                                 <td> {{ $hand['trump']->getSuitName() }}</td>
                             </tr>
                             <tr>
-                                <td>Play Power</td>
-                                <td>{{ $hand['play_power'] }}</td>
+                                <td>Estimated Bid</td>
+                                <td>{{ $hand['bid'] }}</td>
+                            </tr>
+                            <tr>
+                                <th colspan="2">Play Power</th>
+                            </tr>
+                            <tr>
+                                <td>
+                                    @foreach($hand['play_power'] as $suit => $stats)
+                                        <strong>{{ (new \App\Pinochle\Cards\Card($suit))->getSuitName(true) }}</strong> {{ $stats['power'] }}
+                                    @endforeach
+                                </td>
+                                <td>{{ $hand['play_power']->sum('power') }}
+                                </td>
                             </tr>
                             <tr>
                                 <th colspan="2">

@@ -25,9 +25,10 @@ class GameController extends Controller
                 'trump' => new Card($trump),
                 'meld'  => $hand->getMeld($trump),
                 'potential' => $hand->getMeldPotential($trump),
-                'play_power' => $hand->getPlayingPower($trump),
+                'play_power' => $hand->getPlayingPower($trump, false),
                 'wishlist' => $hand->getMeldWishList($trump),
-                'pass' => $hand->getPass($trump)
+                'pass' => $hand->getPass($trump),
+                'bid' => $hand->getMaxBid()
             ]);
         }
 
