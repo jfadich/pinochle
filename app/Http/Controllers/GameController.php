@@ -65,6 +65,7 @@ class GameController extends Controller
         $player = Player::findOrFail($request->get('player'));
 
         $pinochle->placeBid($player, $new_bid);
+        $pinochle->setNextBidder();
 
         return redirect("/games/{$game->id}");
     }

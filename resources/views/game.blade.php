@@ -128,6 +128,12 @@
                                 </td>
                             </tr>
                         </table>
+
+                        <ul>
+                            @foreach($game->getLog() as $log)
+                                <li>{{ $log['text'] }}</li>
+                            @endforeach
+                        </ul>
                     </div>
                 </div>
 

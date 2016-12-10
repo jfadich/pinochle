@@ -20,10 +20,10 @@ class Pinochle
             $game->rounds()->create([]);
 
             // TODO Add 'addPlayer' methods
-            $game->players()->create(['seat' => 0, 'user_id' => 1]);
+            $game->players()->create(['seat' => 0, 'user_id' => null]);
             $game->players()->create(['seat' => 1, 'user_id' => 1]);
-            $game->players()->create(['seat' => 2, 'user_id' => 1]);
-            $game->players()->create(['seat' => 3, 'user_id' => 1]);
+            $game->players()->create(['seat' => 2, 'user_id' => null]);
+            $game->players()->create(['seat' => 3, 'user_id' => null]);
             // end todo
         }
 
@@ -80,18 +80,16 @@ class Pinochle
         if($bid !== 'pass' && $bid <= $current_bid['bid'])
             throw new PinochleRuleException('Bid must be larger than current bid');
 
+        $message =
+        $this->game->addLog($player->id, "{$player->getName()} bid $bid");
         $this->game->currentRound->addBid($bid, $player->seat);
-
-        $this->setNextBidder();
 
         return $bid;
     }
 
-    protected function setNextBidder()
+    public function setNextBidder()
     {
-        do {
-            $this->setNextPlayer();
-        } while (in_array($this->game->currentRound->active_seat, $this->game->currentRound->auction('passers', [])));
+        $nextPayer = $this->setNextPlayer();
 
         if(count($this->game->currentRound->auction('passers')) === 3) {
             $this->game->currentRound->phase = Round::PHASE_CALLING;
@@ -99,14 +97,34 @@ class Pinochle
             $this->game->currentRound->lead_seat = $this->game->currentRound->active_seat;
 
             $this->game->currentRound->save();
+
+            return;
         }
+
+        if(in_array($this->game->currentRound->active_seat, $this->game->currentRound->auction('passers', [])))
+            $this->setNextBidder();
+
+        if( !$nextPayer->isUser() ) {
+            $hand = $this->game->currentRound->getHands($nextPayer->seat);
+            $nextBid = $this->game->currentRound->getCurrentBid()['bid'] + 10;
+            $maxBid = $hand->getMaxBid();
+            if($nextBid < $maxBid) {
+                $this->placeBid($nextPayer, $nextBid);
+            } else {
+                $this->placeBid($nextPayer, 'pass');
+            }
+
+            $this->setNextBidder();
+        }
+
     }
 
     protected function setNextPlayer()
     {
         $active_seat = $this->game->currentRound->active_seat;
         $this->game->currentRound->active_seat = $active_seat === 3 ? 0 : $active_seat + 1;
+        $this->game->currentRound->save();
 
-        return $this->game->currentRound->save();
+        return $this->game->getCurrentPlayer();
     }
 }

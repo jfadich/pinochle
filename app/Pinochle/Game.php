@@ -8,6 +8,8 @@ class Game extends Model
 {
     public $fillable = ['name'];
 
+    public $casts = ['log' => 'array'];
+
     public function players()
     {
         return $this->hasMany(Player::class, 'game_id')->orderBy('seat', 'asc');
@@ -25,6 +27,30 @@ class Game extends Model
 
     public function getCurrentPlayer()
     {
-        return $this->players->where('seat', $this->currentRound->active_seat)->first();
+        return $this->getPlayerAtSeat($this->currentRound->active_seat);
+    }
+
+    public function getPlayerAtSeat($seat)
+    {
+        return $this->players->where('seat', $seat)->first();
+    }
+
+    public function getLog()
+    {
+        return $this->log ?? [];
+    }
+
+    public function addLog($name, $action)
+    {
+        $log = $this->log;
+
+        $log[] = [
+            'time' => time(),
+            'player' => $name,
+            'text' => $action
+        ];
+
+        $this->log = $log;
+        $this->save();
     }
 }

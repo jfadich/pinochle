@@ -31,17 +31,21 @@ class Round extends Model implements JsonPropertyInterface
         return $this->hasMany(Play::class, 'round_id');
     }
 
-    public function getHands()
+    public function getHands($seat = null)
     {
         foreach($this->hands()->all() as $k => $cards) {
+            if($seat !== null && $k = "seat_$seat")
+                return new Hand($cards);
+
             if(!$cards instanceof Hand)
                 $this->hands()->set($k, new Hand($cards));
+
         }
 
         return $this->hands()->all();
     }
 
-    public function phase(int $phase)
+    public function phase($phase)
     {
         return $this->phase === $phase;
     }

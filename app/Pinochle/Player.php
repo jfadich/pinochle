@@ -18,4 +18,14 @@ class Player extends Model
     {
         return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function getName()
+    {
+        return $this->isUser() ? $this->user->name : "Computer $this->seat";
+    }
+
+    public function isUser()
+    {
+        return $this->user_id !== null;
+    }
 }
