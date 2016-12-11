@@ -249,9 +249,10 @@ class Hand extends Model
     public function getPlayingPower($trump, $sum = true)
     {
         $wishList = $this->getMeldWishList($trump);
+        $needed = $wishList->sum(function($card) use($trump) { return $card->getSuit() === $trump ? $card->getRank() : 0; } );
         $pass = 0;
-        $trumpPower = 10;
-        $acePower = 7;
+        $trumpPower = 15;
+        $acePower = 10;
         $suitStats = [];
         $cards = $this->getCards()->merge($wishList);
 
@@ -271,7 +272,7 @@ class Hand extends Model
                 $suitStats[$suit]['aces']++;
 
             if($card->isSuit($trump)) {
-                $suitStats[$suit]['power'] += $trumpPower + $rank + ($suitStats[$suit]['aces'] * $acePower);
+                $suitStats[$suit]['power'] += $trumpPower + $rank + ($suitStats[$suit]['aces'] * $acePower) - $needed;
                 continue;
             }
 
