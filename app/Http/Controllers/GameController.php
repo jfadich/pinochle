@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\PinochleRuleException;
+use App\Pinochle\AutoPlayer;
 use App\Pinochle\Cards\Card;
 use App\Pinochle\Models\Game;
 use App\Pinochle\Pinochle;
@@ -17,19 +18,20 @@ class GameController extends Controller
         $hands = collect([]);
 
         foreach($game->currentRound->hands as $key => $hand) {
-            $trump = $hand->callTrump();
+            $analysis = new AutoPlayer($hand);
+            $trump = $analysis->callTrump();
 
             $hands->push([
                 'seat' => $key,
                 'player' => $hand->player,
                 'cards' => $hand->getCards(),
                 'trump' => new Card($trump),
-                'meld'  => $hand->getMeld($trump),
-                'potential' => $hand->getMeldPotential($trump),
-                'play_power' => $hand->getPlayingPower($trump, false),
-                'wishlist' => $hand->getMeldWishList($trump),
-                'pass' => $hand->getPass($trump),
-                'bid' => $hand->getMaxBid()
+                'meld'  => $analysis->getMeld($trump),
+                'potential' => $analysis->getMeldPotential($trump),
+                'play_power' => $analysis->getPlayingPower($trump, false),
+                'wishlist' => $analysis->getMeldWishList($trump),
+                'pass' => $analysis->getPassBack($trump),
+                'bid' => $analysis->getMaxBid()
             ]);
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Pinochle\Models;
 
+use App\Pinochle\AutoPlayer;
 use App\Pinochle\Models\Hand;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +10,8 @@ use Illuminate\Database\Eloquent\Model;
 class Player extends Model
 {
     public $fillable = ['seat', 'user_id'];
+
+    protected $autoPlayer;
 
     public function game()
     {
@@ -33,6 +36,14 @@ class Player extends Model
     public function isAuto()
     {
         return $this->user_id === null;
+    }
+
+    public function getAutoPlayer($round, $reset  = false)
+    {
+        if($reset || $this->autPlayer === null)
+            $this->autoPlayer = new AutoPlayer($this->getHandForRound($round));
+
+        return $this->autoPlayer;
     }
 
     public function getHandForRound($round)

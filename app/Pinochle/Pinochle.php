@@ -107,9 +107,9 @@ class Pinochle
         }
 
         if( $nextPayer->isAuto() ) {
-            $hand = $nextPayer->getHandForRound($this->game->currentRound->id);
+            $player = $nextPayer->getAutoPlayer($this->game->currentRound->id);
             $nextBid = $this->game->currentRound->getCurrentBid()['bid'] + 10;
-            $maxBid = $hand->getMaxBid();
+            $maxBid = $player->getMaxBid();
             if($nextBid < $maxBid) {
                 $this->placeBid($nextPayer, $nextBid);
             } else {

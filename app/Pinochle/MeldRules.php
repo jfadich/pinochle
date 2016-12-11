@@ -8,7 +8,7 @@ class MeldRules
 {
     protected $meldTable = [];
 
-    public function pinochle()
+    public static function pinochle()
     {
         return collect([
             new Card(Card::RANK_JACK, Card::SUIT_DIAMONDS),
@@ -16,7 +16,7 @@ class MeldRules
         ]);
     }
 
-    public function run($suit)
+    public static function run($suit)
     {
         return collect([
             new Card(Card::RANK_ACE, $suit),
@@ -27,7 +27,7 @@ class MeldRules
         ]);
     }
 
-    public function marriage($suit)
+    public static function marriage($suit)
     {
         return collect([
             new Card(Card::RANK_KING, $suit),
@@ -35,7 +35,7 @@ class MeldRules
         ]);
     }
 
-    public function fourOfAKind($rank)
+    public static function fourOfAKind($rank)
     {
         return collect([
             new Card($rank, Card::SUIT_CLUBS),
@@ -45,7 +45,7 @@ class MeldRules
         ]);
     }
 
-    public function lowestTrump($suit)
+    public static function lowestTrump($suit)
     {
         return collect([
             new Card(Card::RANK_NINE, $suit)
