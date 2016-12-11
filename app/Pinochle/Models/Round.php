@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Pinochle;
+namespace App\Pinochle\Models;
 
-use App\Pinochle\Cards\Hand;
 use Illuminate\Database\Eloquent\Model;
 use Jfadich\JsonProperty\JsonPropertyInterface;
 use Jfadich\JsonProperty\JsonPropertyTrait;
@@ -19,18 +18,18 @@ class Round extends Model implements JsonPropertyInterface
     const PHASE_PLAYING = 'playing';
     const PHASE_COMPLETE = 'complete';
 
-    protected $jsonProperty = ['auction', 'buy', 'hands', 'meld'];
+    protected $jsonProperty = ['auction', 'buy', 'meld'];
 
     public function game()
     {
         return $this->belongsTo(Game::class, 'game_id');
     }
 
-    public function plays()
+    public function hands()
     {
-        return $this->hasMany(Play::class, 'round_id');
+        return $this->hasMany(Hand::class, 'round_id');
     }
-
+/*
     public function getHands($seat = null)
     {
         foreach($this->hands()->all() as $k => $cards) {
@@ -44,8 +43,8 @@ class Round extends Model implements JsonPropertyInterface
 
         return $this->hands()->all();
     }
-
-    public function phase($phase)
+*/
+    public function isPhase($phase)
     {
         return $this->phase === $phase;
     }

@@ -6,14 +6,14 @@
         <!-- Nav tabs -->
         <ul class="nav nav-tabs" role="tablist">
             @foreach($hands as $hand)
-                <li role="presentation" class="{{ "seat_{$game->currentRound->active_seat}" === $hand['seat'] ? ' active' : '' }}"><a href="#{{ $hand['seat'] }}" role="tab" data-toggle="tab">{{ $hand['seat'] }}</a></li>
+                <li role="presentation" class="{{ $game->currentRound->active_seat === $hand['player']->seat ? ' active' : '' }}"><a href="#{{ $hand['seat'] }}" role="tab" data-toggle="tab">{{ $hand['seat'] }}</a></li>
             @endforeach
         </ul>
 
         <!-- Tab panes -->
         <div class="tab-content">
             @foreach($hands as $hand)
-            <div role="tabpanel" class="tab-pane{{ "seat_{$game->currentRound->active_seat}" === $hand['seat'] ? ' active' : '' }}" id="{{ $hand['seat'] }}">
+            <div role="tabpanel" class="tab-pane{{ $game->currentRound->active_seat === $hand['player']->seat ? ' active' : '' }}" id="{{ $hand['seat'] }}">
                 <div class="row">
 
                     @foreach($hand['cards'] as $k => $card)
@@ -61,7 +61,7 @@
 
                     </div>
                     <div class="col-md-4">
-                        @if($hand['seat'] === "seat_{$game->currentRound->active_seat}")
+                        @if($game->currentRound->phase === \App\Pinochle\Models\Round::PHASE_BIDDING && $game->currentRound->active_seat === $hand['player']->seat)
                             <div class="row">
                                 <form action="/api/games/{{ $game->id }}/bids" method="post">
                                     <input type="hidden" name="player" value="{{ $game->getCurrentPlayer()->id }}">

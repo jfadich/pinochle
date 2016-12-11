@@ -32,8 +32,7 @@ class Deck
         $hands = collect();
 
         $this->cards->shuffle()->chunk(12)->each(function($hand) use($hands) {
-            $hand = new Hand($hand->sort()->reverse());
-            $hands->push($hand);
+            $hands->push($hand->sort()->reverse()->values());
         });
 
         return $hands;

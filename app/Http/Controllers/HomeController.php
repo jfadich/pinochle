@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Pinochle\Game;
+use App\Pinochle\Models\Game;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller

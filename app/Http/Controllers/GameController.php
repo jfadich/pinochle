@@ -4,10 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\PinochleRuleException;
 use App\Pinochle\Cards\Card;
-use App\Pinochle\Game;
+use App\Pinochle\Models\Game;
 use App\Pinochle\Pinochle;
-use App\Pinochle\Player;
-use App\Pinochle\Round;
+use App\Pinochle\Models\Player;
+use App\Pinochle\Models\Round;
 use Illuminate\Http\Request;
 
 class GameController extends Controller
@@ -16,11 +16,12 @@ class GameController extends Controller
     {
         $hands = collect([]);
 
-        foreach($game->currentRound->getHands() as $key => $hand) {
+        foreach($game->currentRound->hands as $key => $hand) {
             $trump = $hand->callTrump();
 
             $hands->push([
                 'seat' => $key,
+                'player' => $hand->player,
                 'cards' => $hand->getCards(),
                 'trump' => new Card($trump),
                 'meld'  => $hand->getMeld($trump),

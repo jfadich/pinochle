@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Pinochle;
+namespace App\Pinochle\Models;
 
 use Illuminate\Database\Eloquent\Model;
 

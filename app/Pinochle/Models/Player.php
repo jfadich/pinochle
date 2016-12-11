@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Pinochle\Models;
+
+use App\Pinochle\Models\Hand;
+use App\User;
+use Illuminate\Database\Eloquent\Model;
+
+class Player extends Model
+{
+    public $fillable = ['seat', 'user_id'];
+
+    public function game()
+    {
+        return $this->belongsTo(Game::class, 'game_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function hands()
+    {
+        return $this->hasMany(Hand::class, 'player_id');
+    }
+
+    public function getName()
+    {
+        return $this->isAuto() ? "Computer $this->seat" : $this->user->name;
+    }
+
+    public function isAuto()
+    {
+        return $this->user_id === null;
+    }
+
+    public function getHandForRound($round)
+    {
+        return $this->hands->where('round_id', $round)->first();
+    }
+}

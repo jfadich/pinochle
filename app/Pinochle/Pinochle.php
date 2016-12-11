@@ -5,7 +5,9 @@ namespace App\Pinochle;
 
 use App\Exceptions\PinochleRuleException;
 use App\Pinochle\Cards\Deck;
-use App\Pinochle\Cards\Hand;
+use App\Pinochle\Models\Game;
+use App\Pinochle\Models\Player;
+use App\Pinochle\Models\Round;
 
 class Pinochle
 {
@@ -24,7 +26,6 @@ class Pinochle
             $game->players()->create(['seat' => 1, 'user_id' => 1]);
             $game->players()->create(['seat' => 2, 'user_id' => null]);
             $game->players()->create(['seat' => 3, 'user_id' => null]);
-            // end todo
         }
 
         return (new static())->setGame($game);
@@ -49,21 +50,23 @@ class Pinochle
         }
 
         $hands = Deck::make()->deal();
-        $hands->each(function(Hand $hand, $key) {
-            $this->game->currentRound->hands()->set("seat_$key", $hand);
+        $hands->each(function($cards, $key) {
+            $this->game->currentRound->hands()->create([
+                'original' => $cards,
+                'current' => $cards,
+                'player_id' => $this->game->players[$key]->id
+            ]);
         });
 
         $this->game->currentRound->phase = Round::PHASE_BIDDING;
         $this->setNextPlayer();
-
-        $this->game->currentRound->save();
 
         return $this;
     }
 
     public function placeBid(Player $player, $bid)
     {
-        if(!$this->game->currentRound->phase(Round::PHASE_BIDDING))
+        if(!$this->game->currentRound->isPhase(Round::PHASE_BIDDING))
             throw new PinochleRuleException('Game is currently not bidding');
 
         if($this->game->getCurrentPlayer()->id !== $player->id)
@@ -80,7 +83,6 @@ class Pinochle
         if($bid !== 'pass' && $bid <= $current_bid['bid'])
             throw new PinochleRuleException('Bid must be larger than current bid');
 
-        $message =
         $this->game->addLog($player->id, "{$player->getName()} bid $bid");
         $this->game->currentRound->addBid($bid, $player->seat);
 
@@ -90,6 +92,9 @@ class Pinochle
     public function setNextBidder()
     {
         $nextPayer = $this->setNextPlayer();
+
+        if(in_array($this->game->currentRound->active_seat, $this->game->currentRound->auction('passers', [])))
+            $this->setNextBidder();
 
         if(count($this->game->currentRound->auction('passers')) === 3) {
             $this->game->currentRound->phase = Round::PHASE_CALLING;
@@ -101,11 +106,8 @@ class Pinochle
             return;
         }
 
-        if(in_array($this->game->currentRound->active_seat, $this->game->currentRound->auction('passers', [])))
-            $this->setNextBidder();
-
-        if( !$nextPayer->isUser() ) {
-            $hand = $this->game->currentRound->getHands($nextPayer->seat);
+        if( $nextPayer->isAuto() ) {
+            $hand = $nextPayer->getHandForRound($this->game->currentRound->id);
             $nextBid = $this->game->currentRound->getCurrentBid()['bid'] + 10;
             $maxBid = $hand->getMaxBid();
             if($nextBid < $maxBid) {
