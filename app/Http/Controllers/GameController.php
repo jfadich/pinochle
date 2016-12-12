@@ -35,7 +35,15 @@ class GameController extends Controller
             ]);
         }
 
-        return view('game', compact('game', 'hands'));
+        return view('analysis', compact('game', 'hands'));
+    }
+
+    public function play(Game $game)
+    {
+        $game->load(['players.hands']);
+
+
+        return view('game', compact('game'));
     }
 
     public function store(Request $request)
@@ -68,7 +76,23 @@ class GameController extends Controller
         $player = Player::findOrFail($request->get('player'));
 
         $pinochle->placeBid($player, $new_bid);
-        $pinochle->setNextBidder();
+
+        return redirect("/games/{$game->id}");
+    }
+
+    public function callTrump(Game $game, Request $request)
+    {
+        $this->validate($request, [
+            'trump' => 'required'
+        ]);
+
+        $pinochle = Pinochle::make($game);
+
+        $trump = $request->get('trump');
+
+        $player = Player::findOrFail($request->get('player'));
+
+        $pinochle->callTrump($player, (int)$trump);
 
         return redirect("/games/{$game->id}");
     }

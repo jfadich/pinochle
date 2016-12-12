@@ -1,149 +1,114 @@
-@extends('layouts.app')
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+<style>
+    body,html {
+        height: 100%;
+    }
 
-@section('content')
-    <div class="container">
-        <h1>{{ $game->name }} : {{ $game->currentRound->phase }}</h1>
-        <!-- Nav tabs -->
-        <ul class="nav nav-tabs" role="tablist">
-            @foreach($hands as $hand)
-                <li role="presentation" class="{{ $game->currentRound->active_seat === $hand['player']->seat ? ' active' : '' }}"><a href="#{{ $hand['seat'] }}" role="tab" data-toggle="tab">{{ $hand['seat'] }}</a></li>
-            @endforeach
-        </ul>
+    #content {
+        display: flex;
+        background: black;
+        flex-basis:1366px;
+        height: 100%;
+    }
 
-        <!-- Tab panes -->
-        <div class="tab-content">
-            @foreach($hands as $hand)
-            <div role="tabpanel" class="tab-pane{{ $game->currentRound->active_seat === $hand['player']->seat ? ' active' : '' }}" id="{{ $hand['seat'] }}">
-                <div class="row">
+    #game-table {
+        background: green;
+        flex:8;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
 
-                    @foreach($hand['cards'] as $k => $card)
-                        <div class="col-md-1">
-                            <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
-                        </div>
+    }
 
-                    @endforeach
-                </div>
-<hr>
+    #play-area {
+        background: gray;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        display: flex;
+        flex:1;
+    }
 
-                <div class="row">
-                    <div class="col-md-8">
-                        <ul class="nav nav-tabs" role="tablist">
-                            <li role="presentation" class="active"><a href="#{{ $hand['seat'] }}-potential" role="tab" data-toggle="tab">Meld Potential ({{ $hand['potential']['total'] }}) </a></li>
-                            <li role="presentation"><a href="#{{ $hand['seat'] }}-meld" role="tab" data-toggle="tab">Meld Dealt ({{ $hand['meld']['total'] }}) </a></li>
-                        </ul>
-                        <div class="tab-content">
-                            <div role="tabpanel" class="tab-pane" id="{{ $hand['seat'] }}-meld">
-                                @foreach($hand['meld']['cards'] as $set)
-                                    <div class="row">
-                                        @foreach($set as $k => $card)
-                                            <div class="col-md-2">
-                                                <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @endforeach
-                            </div>
-                            <div role="tabpanel" class="tab-pane active" id="{{ $hand['seat'] }}-potential">
-                                @foreach($hand['potential']['cards'] as $set)
-                                    <div class="row">
-                                        @foreach($set as $k => $card)
-                                            <div class="col-md-2">
-                                                <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                @endforeach
-                            </div>
-                        </div>
+    #player-hand {
+        display:flex;
+        padding:10px;
+    }
+
+    #player-hand div {
+        margin-left:-50px;
+        flex: 1;
+    }
+
+    #player-hand div:first-of-type {
+        margin-left:10px;
+    }
 
 
+    #info-pane {
+        background: lightcyan;
+        flex: 2;
+    }
+</style>
 
-
-                    </div>
-                    <div class="col-md-4">
-                        @if($game->currentRound->phase === \App\Pinochle\Models\Round::PHASE_BIDDING && $game->currentRound->active_seat === $hand['player']->seat)
-                            <div class="row">
-                                <form action="/api/games/{{ $game->id }}/bids" method="post">
-                                    <input type="hidden" name="player" value="{{ $game->getCurrentPlayer()->id }}">
-                                    <input name="bid" value="{{ $game->currentRound->getCurrentBid()['bid'] + 10 }}">
-                                    <input type="submit">
-                                </form>
-                                <form action="/api/games/{{ $game->id }}/bids" method="POST">
-                                    <input type="hidden" name="player" value="{{ $game->getCurrentPlayer()->id }}">
-                                    <input type="submit" name="bid" value="pass">
-                                </form>
-                            </div>
-                        @endif
-
-                        <table class="table table-bordered">
-                            <tr>
-                                <th colspan="2">Bid</th>
-                            </tr>
-                            <tr>
-                                <td>Preferred Trump</td>
-                                <td> {{ $hand['trump']->getSuitName() }}</td>
-                            </tr>
-                            <tr>
-                                <td>Estimated Bid</td>
-                                <td>{{ $hand['bid'] }}</td>
-                            </tr>
-                            <tr>
-                                <th colspan="2">Play Power</th>
-                            </tr>
-                            <tr>
-                                <td>
-                                    @foreach($hand['play_power'] as $suit => $stats)
-                                        <strong>{{ (new \App\Pinochle\Cards\Card($suit))->getSuitName(true) }}</strong> {{ $stats['power'] }}
-                                    @endforeach
-                                </td>
-                                <td>{{ $hand['play_power']->sum('power') }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th colspan="2">
-                                    Wishlist
-                                </th>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    @foreach($hand['wishlist'] as $k => $card)
-                                        <div class="col-md-3">
-                                            <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
-                                        </div>
-                                    @endforeach
-                                </td>
-                            </tr>
-                            <tr>
-                                <th colspan="2">
-                                    Passback
-                                </th>
-                            </tr>
-                            <tr>
-                                <td colspan="2">
-                                    @foreach($hand['pass'] as $k => $card)
-                                        <div class="col-md-3">
-                                            <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
-                                        </div>
-                                    @endforeach
-                                </td>
-                            </tr>
-                        </table>
-
-                        <ul>
-                            @foreach($game->getLog() as $log)
-                                <li>{{ $log['text'] }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-
-
-
-            </div>
-            @endforeach
-
+<div id="content">
+    <div id="game-table">
+        <div id="play-area">
+            @include("game-states.{$game->currentRound->phase}")
+            <i class="fa fa-5x fa-arrow-{{ ['right', 'down', 'left', 'up'][$game->currentRound->active_seat] }}"></i>
         </div>
+        <div id="player-hand">
 
+            @foreach($game->getCurrentPlayer()->getCurrentHand()->getCards() as $k => $card)
+                <div>
+                    <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
+                </div>
+
+            @endforeach
+        </div>
     </div>
 
-@endsection
+
+    <div id="info-pane">
+        <div id="scoreboard">
+            <table class="table">
+                <tr>
+                    <th></th>
+                    <th>Team Alpha</th>
+                    <th>Team Bravo</th>
+                </tr>
+                @foreach($game->rounds as $round)
+                    @if($loop->last)
+                        <tr>
+                            <th>Round {{ $round->number }}</th>
+                            <td>
+                                @if($game->currentRound->active_seat & $game->getCurrentPlayer()->seat & 0 )
+                                {{ $game->currentRound->phase }}
+                                @endif
+                            </td>
+                            <td>
+                                @if($game->currentRound->active_seat & $game->getCurrentPlayer()->seat & 1 )
+                                    {{ $game->currentRound->phase }}
+                                @endif
+                            </td>
+                        </tr>
+                    @else
+                        <tr>
+                            <th>Round {{ $round->number }}</th>
+                            <td> {{ $round->score_team_0 }}</td>
+                            <td> {{ $round->score_team_1 }}</td>
+                        </tr>
+                    @endif
+                @endforeach
+            </table>
+        </div>
+        <div id="chat">
+            <ul>
+                @foreach($game->getLog() as $log)
+                    <li>{{ $log['text'] }}</li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+
+</div>

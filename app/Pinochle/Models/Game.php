@@ -8,6 +8,8 @@ class Game extends Model
 {
     public $fillable = ['name'];
 
+    public $with = ['players', 'rounds'];
+
     public $casts = ['log' => 'array'];
 
     public function players()
@@ -22,7 +24,7 @@ class Game extends Model
 
     public function currentRound()
     {
-        return $this->hasOne(Round::class, 'game_id')->orderBy('round_number', 'desc');
+        return $this->hasOne(Round::class, 'game_id')->orderBy('number', 'desc');
     }
 
     public function getCurrentPlayer()

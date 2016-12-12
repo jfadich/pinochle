@@ -4,6 +4,7 @@ namespace App\Pinochle;
 
 
 use App\Exceptions\PinochleRuleException;
+use App\Pinochle\Cards\Card;
 use App\Pinochle\Cards\Deck;
 use App\Pinochle\Models\Game;
 use App\Pinochle\Models\Player;
@@ -68,9 +69,11 @@ class Pinochle
     {
         if(!$this->game->currentRound->isPhase(Round::PHASE_BIDDING))
             throw new PinochleRuleException('Game is currently not bidding');
+        if($this->game->getCurrentPlayer()->id !== $player->id) {
+            //dd($this->game->getCurrentPlayer(), $player);
 
-        if($this->game->getCurrentPlayer()->id !== $player->id)
             throw new PinochleRuleException('It\'s not your turn');
+        }
 
         if(in_array($player->seat, $this->game->currentRound->auction('passers', [])))
             throw new PinochleRuleException('You have already passed this round');
@@ -86,15 +89,38 @@ class Pinochle
         $this->game->addLog($player->id, "{$player->getName()} bid $bid");
         $this->game->currentRound->addBid($bid, $player->seat);
 
+        $this->setNextBidder();
+
         return $bid;
     }
 
-    public function setNextBidder()
+    public function callTrump(Player $player, $trump)
     {
-        $nextPayer = $this->setNextPlayer();
+        if(is_int($trump))
+            $trump = new Card($trump);
+
+        if(!$this->game->currentRound->isPhase(Round::PHASE_CALLING))
+            throw new PinochleRuleException('Game is currently not calling');
+
+        if($this->game->getCurrentPlayer()->id !== $player->id)
+            throw new PinochleRuleException('It\'s not your turn');
+
+        $this->game->currentRound->setTrump($trump);
+
+        $this->game->currentRound->phase = Round::PHASE_PASSING;
+
+        $this->setNextPlayer(1);
+
+        $this->game->addLog($player->id, "{$player->getName()} called {$trump->getSuitName()} for trump");
+
+    }
+
+    protected function setNextBidder()
+    {
+        $nextPlayer = $this->setNextPlayer();
 
         if(in_array($this->game->currentRound->active_seat, $this->game->currentRound->auction('passers', [])))
-            $this->setNextBidder();
+            return $this->setNextBidder();
 
         if(count($this->game->currentRound->auction('passers')) === 3) {
             $this->game->currentRound->phase = Round::PHASE_CALLING;
@@ -103,30 +129,34 @@ class Pinochle
 
             $this->game->currentRound->save();
 
+            if($nextPlayer->isAuto()) {
+                $this->callTrump($nextPlayer, $nextPlayer->getAutoPlayer($this->game->currentRound->id)->callTrump());
+                return;
+            }
+
             return;
         }
 
-        if( $nextPayer->isAuto() ) {
-            $player = $nextPayer->getAutoPlayer($this->game->currentRound->id);
+        if( $nextPlayer->isAuto() ) {
+            $player = $nextPlayer->getAutoPlayer($this->game->currentRound->id);
             $nextBid = $this->game->currentRound->getCurrentBid()['bid'] + 10;
             $maxBid = $player->getMaxBid();
             if($nextBid < $maxBid) {
-                $this->placeBid($nextPayer, $nextBid);
+                $this->placeBid($nextPlayer, $nextBid);
             } else {
-                $this->placeBid($nextPayer, 'pass');
+                $this->placeBid($nextPlayer, 'pass');
             }
-
-            $this->setNextBidder();
         }
 
     }
 
-    protected function setNextPlayer()
+    protected function setNextPlayer(int $sameTeam = 0)
     {
         $active_seat = $this->game->currentRound->active_seat;
-        $this->game->currentRound->active_seat = $active_seat === 3 ? 0 : $active_seat + 1;
+        $this->game->currentRound->active_seat = ($active_seat + 1 + $sameTeam ) & 3;
         $this->game->currentRound->save();
 
         return $this->game->getCurrentPlayer();
     }
+
 }

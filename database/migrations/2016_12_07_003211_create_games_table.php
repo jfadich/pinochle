@@ -16,6 +16,7 @@ class CreateGamesTable extends Migration
         Schema::create('games', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
+            $table->string('join_code')->index();
             $table->boolean('active')->default(1);
             $table->text('log');
             $table->timestamps();

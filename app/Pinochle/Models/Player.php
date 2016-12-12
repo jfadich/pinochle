@@ -46,6 +46,11 @@ class Player extends Model
         return $this->autoPlayer;
     }
 
+    public function getCurrentHand()
+    {
+        return $this->hands->sortByDesc('round_id')->first();
+    }
+
     public function getHandForRound($round)
     {
         return $this->hands->where('round_id', $round)->first();

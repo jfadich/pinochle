@@ -2,6 +2,7 @@
 
 namespace App\Pinochle\Models;
 
+use App\Pinochle\Cards\Card;
 use Illuminate\Database\Eloquent\Model;
 use Jfadich\JsonProperty\JsonPropertyInterface;
 use Jfadich\JsonProperty\JsonPropertyTrait;
@@ -58,6 +59,11 @@ class Round extends Model implements JsonPropertyInterface
         }
 
         $this->save();
+    }
+
+    public function setTrump(Card $trump)
+    {
+        $this->trump = $trump->getValue();
     }
 
     public function getCurrentBid()
