@@ -109,9 +109,53 @@ class Pinochle
 
         $this->game->currentRound->phase = Round::PHASE_PASSING;
 
-        $this->setNextPlayer(1);
+        $nextPlayer = $this->setNextPlayer(1);
+
+        if($nextPlayer->isAuto()) {
+
+        }
 
         $this->game->addLog($player->id, "{$player->getName()} called {$trump->getSuitName()} for trump");
+
+    }
+
+    public function passCards(Player $player, $pass)
+    {
+        if(!$this->game->currentRound->isPhase(Round::PHASE_PASSING))
+            throw new PinochleRuleException('Game is currently not bidding');
+
+        $isLeader = $this->game->currentRound->lead_seat === $this->game->currentRound->active_seat;
+
+        if($isLeader) {
+            $partner = $this->getNextSeat(1);
+            $partner = $this->game->getPlayerAtSeat($partner);
+        } else {
+            $partner = $this->setNextPlayer(1);
+        }
+
+        $pass = $player->getCurrentHand()->takeCards($pass);
+        $partner->getCurrentHand()->addCards($pass);
+
+        if($isLeader) {
+            $this->game->currentRound->phase = Round::PHASE_MELDING;
+
+            $this->game->players->each(function($player) {
+
+                $analysis = new HandAnalyser($player->getCurrentHand()->getCards());
+                $meld = $analysis->getMeld($this->game->currentRound->trump);
+
+                $this->game->currentRound->meld()->merge("players.{$player->seat}", $meld);
+
+                if($player->isAuto()) {
+                    $this->game->currentRound->meld()->push('ready', $player->seat);
+                }
+            });
+
+            $this->game->currentRound->save();
+        }
+
+        $this->game->addLog($player->id, "{$player->getName()} passed cards to {$partner->getName()}");
+
 
     }
 
@@ -139,24 +183,26 @@ class Pinochle
 
         if( $nextPlayer->isAuto() ) {
             $player = $nextPlayer->getAutoPlayer($this->game->currentRound->id);
-            $nextBid = $this->game->currentRound->getCurrentBid()['bid'] + 10;
-            $maxBid = $player->getMaxBid();
-            if($nextBid < $maxBid) {
-                $this->placeBid($nextPlayer, $nextBid);
-            } else {
-                $this->placeBid($nextPlayer, 'pass');
-            }
+            $nextBid = $player->getNextBid($this->game->currentRound->auction(), $this->getNextSeat(1));
+
+            $this->placeBid($nextPlayer, $nextBid);
         }
 
     }
 
     protected function setNextPlayer(int $sameTeam = 0)
     {
-        $active_seat = $this->game->currentRound->active_seat;
-        $this->game->currentRound->active_seat = ($active_seat + 1 + $sameTeam ) & 3;
+        $this->game->currentRound->active_seat = $this->getNextSeat($sameTeam);
         $this->game->currentRound->save();
 
         return $this->game->getCurrentPlayer();
+    }
+
+    protected function getNextSeat( int $sameTeam = 0)
+    {
+        $activeSeat = $this->game->currentRound->active_seat;
+
+        return ($activeSeat + 1 + $sameTeam ) & 3;
     }
 
 }

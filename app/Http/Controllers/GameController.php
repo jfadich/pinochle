@@ -96,4 +96,20 @@ class GameController extends Controller
 
         return redirect("/games/{$game->id}");
     }
+
+    public function passCards(Game $game, Request $request)
+    {
+        $this->validate($request, [
+            'cards' => 'required|array|max:4|min:4'
+        ]);
+
+        $pinochle = Pinochle::make($game);
+        $cards = $request->get('cards');
+        $player = Player::findOrFail($request->get('player'));
+
+        $pinochle->passCards($player, $cards);
+
+
+        return redirect("/games/{$game->id}");
+    }
 }

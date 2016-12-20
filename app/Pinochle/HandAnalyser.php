@@ -14,6 +14,10 @@ class HandAnalyser
         'cards' => []
     ];
 
+    protected $tolerance = 0.4;
+    protected $trumpPower = 15;
+    protected $acePower = 10;
+
     public function __construct($cards)
     {
         if(is_array($cards))
@@ -124,11 +128,10 @@ class HandAnalyser
 
     protected function checkMeldPotential($meldTemplate, &$wishList, $double = true)
     {
-        $tolerance = 0.4;
         $hand = $this->cards->merge($wishList);
         $missing = $meldTemplate->diff($hand);
 
-        if( ($missing->count() / $meldTemplate->count()) <= $tolerance && ($wishList->count() + $missing->count()) <= 4) {
+        if( ($missing->count() / $meldTemplate->count()) <= $this->tolerance && ($wishList->count() + $missing->count()) <= 4) {
             $wishList = $wishList->merge($missing);
 
             if($double)
@@ -165,8 +168,6 @@ class HandAnalyser
         $wishList = $this->getMeldWishList($trump);
         $needed = $wishList->sum(function($card) use($trump) { return $card->getSuit() === $trump ? $card->getRank() : 0; } );
         $pass = 0;
-        $trumpPower = 15;
-        $acePower = 10;
         $suitStats = [];
         $cards = $this->cards->merge($wishList);
 
@@ -186,7 +187,7 @@ class HandAnalyser
                 $suitStats[$suit]['aces']++;
 
             if($card->isSuit($trump)) {
-                $suitStats[$suit]['power'] += $trumpPower + $rank + ($suitStats[$suit]['aces'] * $acePower) - $needed;
+                $suitStats[$suit]['power'] += $this->trumpPower + $rank + ($suitStats[$suit]['aces'] * $this->acePower) - $needed;
                 continue;
             }
 
@@ -194,7 +195,7 @@ class HandAnalyser
             {
                 case Card::RANK_ACE:
                     $suitStats[$suit]['consecutive']++;
-                    $suitStats[$suit]['power'] += ($suitStats[$suit]['aces'] * $acePower);
+                    $suitStats[$suit]['power'] += ($suitStats[$suit]['aces'] * $this->acePower);
                     break;
                 case Card::RANK_TEN:
                     $suitStats[$suit]['power'] += ($rank * $suitStats[$suit]['consecutive']);

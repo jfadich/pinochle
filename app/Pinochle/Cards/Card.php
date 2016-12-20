@@ -65,12 +65,12 @@ class Card implements \JsonSerializable
         return $this->getRankName($short) .' of '. $this->getSuitName($short);
     }
 
-    public function isRank(int $rank)
+    public function isRank(int $rank) : bool
     {
         return $this->getRank() === $rank;
     }
 
-    public function isSuit(int $suit)
+    public function isSuit(int $suit) : bool
     {
         return $this->getSuit() === $suit;
     }
@@ -106,12 +106,13 @@ class Card implements \JsonSerializable
         return $this->value;
     }
 
-    public function __toString()
+    public function __toString() : string
     {
         return $this->friendlyName();
     }
 
-    public function jsonSerialize() {
+    public function jsonSerialize()
+    {
         return $this->value;
     }
 }

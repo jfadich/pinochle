@@ -52,10 +52,18 @@ class Round extends Model implements JsonPropertyInterface
 
     public function addBid($bid, $seat)
     {
+        $currentBid = $this->getCurrentBid();
+
         if($bid === 'pass') {
             $this->auction()->push('passers', $seat);
         } else {
-            $this->auction()->push('bids', ['seat' => $seat, 'bid' => $bid]);
+            $isJump =  $bid > ($currentBid['bid'] + 10);
+            $this->auction()->push('bids', [
+                'seat' => $seat,
+                'bid' => $bid,
+                'under' => false,
+                'jump' => $isJump
+            ]);
         }
 
         $this->save();
@@ -68,9 +76,17 @@ class Round extends Model implements JsonPropertyInterface
 
     public function getCurrentBid()
     {
-        if(empty($this->auction('bids')))
-            $this->auction()->push('bids', ['seat' => $this->lead_seat, 'bid' => 250]);
+       //if(empty($this->auction('bids')))
+      //      $this->auction()->push('bids', ['seat' => $this->lead_seat, 'bid' => 250, 'under' => true]);
 
-        return collect($this->auction('bids'))->sortByDesc('bid')->first();
+        return $this->getBids()->first();
+    }
+
+    public function getBids()
+    {
+        if(empty($this->auction('bids')))
+            $this->auction()->push('bids', ['seat' => $this->lead_seat, 'bid' => 250, 'under' => true]);
+
+        return collect($this->auction('bids'))->sortByDesc('bid');
     }
 }

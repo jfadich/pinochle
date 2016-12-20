@@ -35,12 +35,12 @@
         padding:10px;
     }
 
-    #player-hand div {
+    #player-hand .held-card {
         margin-left:-50px;
         flex: 1;
     }
 
-    #player-hand div:first-of-type {
+    #player-hand .held-card:first-of-type {
         margin-left:10px;
     }
 
@@ -54,17 +54,51 @@
 <div id="content">
     <div id="game-table">
         <div id="play-area">
+
+            @if(!$errors->isEmpty())
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+
+                <hr>
+            @endif
+
             @include("game-states.{$game->currentRound->phase}")
             <i class="fa fa-5x fa-arrow-{{ ['right', 'down', 'left', 'up'][$game->currentRound->active_seat] }}"></i>
         </div>
         <div id="player-hand">
 
+            @if($game->currentRound->phase === \App\Pinochle\Models\Round::PHASE_PASSING)
+                <form method="post" action="/api/games/{{$game->id}}/pass" style="display: inherit">
+                    {{ csrf_field() }}
+                    <input type="hidden" name="player" value="{{ $game->getCurrentPlayer()->id }}">
+
+                @foreach($game->getCurrentPlayer()->getCurrentHand()->getCards() as $k => $card)
+                        <div class="held-card">
+
+                            <input type="checkbox" id="hand-{{$card->getValue()}}" name="cards[]" value="{{$card->getValue()}}">
+                            <label for="hand-{{$card->getValue()}}">
+                            <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
+                            </label>
+                        </div>
+
+                    @endforeach
+
+                    <input type="submit" title="Submit">
+                </form>
+            @else
+
+
+
             @foreach($game->getCurrentPlayer()->getCurrentHand()->getCards() as $k => $card)
-                <div>
+                <div class="held-card">
                     <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
                 </div>
 
             @endforeach
+            @endif
         </div>
     </div>
 

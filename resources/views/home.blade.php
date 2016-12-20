@@ -10,6 +10,8 @@
                 <div class="panel-body">
                     <form action="/api/games" method="post">
                         <input name="name" value="">
+                        {{ csrf_field() }}
+
                         <input type="submit">
                     </form>
                     <hr>

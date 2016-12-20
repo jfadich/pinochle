@@ -23,5 +23,6 @@ Route::group(['prefix' => 'games'], function($router) {
     Route::post('/{game}/players', 'GameController@addPlayer');
     Route::post('/{game}/bids', 'GameController@placeBid');
     Route::post('/{game}/trump', 'GameController@callTrump');
+    Route::post('/{game}/pass', 'GameController@passCards');
     Route::post('/{game}/deal', 'GameController@deal');
 });
