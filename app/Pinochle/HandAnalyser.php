@@ -164,12 +164,12 @@ class HandAnalyser
                         break;
                     case 2: $add = $card->isRank(Card::RANK_ACE);
                         break;
-                    case 3: if($trump === Card::SUIT_SPADES || $trump === Card::SUIT_DIAMONDS) {
+                    case 3: $add = $card->isSuit($trump) && $card->isRank(Card::RANK_NINE);
+                        break;
+                    case 4: if($trump === Card::SUIT_SPADES || $trump === Card::SUIT_DIAMONDS) {
                         $add = $card->isCard(new Card(Card::RANK_QUEEN, Card::SUIT_SPADES)) ||
                             $card->isCard(new Card(Card::RANK_JACK, Card::SUIT_DIAMONDS));
                     } break;
-                    case 4: $add = $card->isSuit($trump) && $card->isRank(Card::RANK_NINE);
-                        break;
                     default:
                         $add = true;
                         break;
@@ -180,6 +180,7 @@ class HandAnalyser
                 }
             }
 
+            $cards = $cards->diff($pass);
         } while($pass->count() < 4);
 
         return $pass->take(4);

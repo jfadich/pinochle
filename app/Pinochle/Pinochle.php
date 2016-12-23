@@ -164,6 +164,20 @@ class Pinochle
         }
     }
 
+    public function setMeldReady($seat)
+    {
+        if(!$this->game->currentRound->isPhase(Round::PHASE_MELDING))
+            throw new PinochleRuleException('Game is currently not melding');
+
+        $this->game->currentRound->meld()->push('ready', $seat);
+
+        if(count($this->game->currentRound->meld('ready', [])) === 4) {
+            $this->game->currentRound->phase = Round::PHASE_PLAYING;
+        }
+
+        $this->game->currentRound->save();
+    }
+
     protected function setNextBidder()
     {
         $nextPlayer = $this->setNextPlayer();

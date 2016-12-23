@@ -19,20 +19,32 @@ class GameController extends Controller
         $hands = collect([]);
 
         foreach($game->currentRound->hands as $key => $hand) {
+
+            // Save current hand or reference, but reset the hand as dealt for analysis.
+            $dealt = $hand->getDealtCards();
+            $cards = $hand->getCards();
+            $hand->dealt = $cards;
+            $hand->current = $dealt;
+
             $analysis = new AutoPlayer($hand);
             $trump = $analysis->callTrump();
 
             $hands->push([
                 'seat' => $key,
                 'player' => $hand->player,
-                'cards' => $hand->getDealtCards(),
-                'current' => $hand->getCards(),
+                'cards' => $dealt,
+                'current' => $cards,
                 'trump' => new Card($trump),
                 'meld'  => $analysis->getMeld($trump),
                 'potential' => $analysis->getMeldPotential($trump),
                 'play_power' => $analysis->getPlayingPower($trump, false),
                 'wishlist' => $analysis->getMeldWishList($trump),
-                'pass' => $analysis->getPassBack($trump),
+                'pass' => [
+                    Card::SUIT_HEARTS => $analysis->getPass(Card::SUIT_HEARTS),
+                    Card::SUIT_SPADES => $analysis->getPass(Card::SUIT_SPADES),
+                    Card::SUIT_DIAMONDS => $analysis->getPass(Card::SUIT_DIAMONDS),
+                    Card::SUIT_CLUBS => $analysis->getPass(Card::SUIT_CLUBS)
+                ],
                 'bid' => $analysis->getMaxBid()
             ]);
         }
@@ -111,6 +123,19 @@ class GameController extends Controller
 
         $pinochle->passCards($player, $cards);
 
+
+        return redirect("/games/{$game->id}");
+    }
+
+    public function meld(Game $game, Request $request)
+    {
+        $this->validate($request, [
+            'seat' => 'required|numeric|min:0|max:3'
+        ]);
+
+        $pinochle = Pinochle::make($game);
+
+        $pinochle->setMeldReady($request->get('seat'));
 
         return redirect("/games/{$game->id}");
     }

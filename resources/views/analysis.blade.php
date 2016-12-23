@@ -128,16 +128,29 @@
                             </tr>
                             <tr>
                                 <th colspan="2">
-                                    Passback
+                                    Pass
                                 </th>
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    @foreach($hand['pass'] as $k => $card)
-                                        <div class="col-md-3">
-                                            <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
+                                    <ul class="nav nav-tabs" role="tablist">
+                                            <li role="presentation" class="active"><a href="#{{$hand['seat']}}pass-suit0" role="tab" data-toggle="tab">Hearts</a></li>
+                                            <li role="presentation"><a href="#{{$hand['seat']}}pass-suit8" role="tab" data-toggle="tab">Spades</a></li>
+                                            <li role="presentation"><a href="#{{$hand['seat']}}pass-suit16" role="tab" data-toggle="tab">Diamonds</a></li>
+                                            <li role="presentation"><a href="#{{$hand['seat']}}pass-suit24" role="tab" data-toggle="tab">Clubs</a></li>
+                                    </ul>
+                                    <div class="tab-content">
+                                        @foreach($hand['pass'] as $suit => $pass)
+                                        <div role="tabpanel" class="tab-pane {{ $loop->first ? 'active' : '' }}" id="{{$hand['seat']}}pass-suit{{ $suit }}">
+                                            @foreach($pass as $k => $card)
+                                                <div class="col-md-3">
+                                                    <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
+                                                </div>
+                                            @endforeach
                                         </div>
-                                    @endforeach
+                                        @endforeach
+                                    </div>
+
                                 </td>
                             </tr>
                         </table>
