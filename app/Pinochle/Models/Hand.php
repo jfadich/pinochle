@@ -16,12 +16,12 @@ class Hand extends Model implements JsonPropertyInterface
     use JsonPropertyTrait;
 
     protected $casts = [
-        'original' => 'array',
+        'dealt' => 'array',
         'current'  => 'array'
     ];
 
     protected $fillable = [
-        'original', 'current', 'player_id'
+        'dealt', 'current', 'player_id'
     ];
 
     protected $jsonProperty = [
@@ -38,9 +38,9 @@ class Hand extends Model implements JsonPropertyInterface
         return $this->validateCards($this->current ?? []);
     }
 
-    public function getOriginalCards()
+    public function getDealtCards()
     {
-        return $this->validateCards($this->original ?? []);
+        return $this->validateCards($this->dealt ?? []);
     }
 
     public function takeCards($cards)
@@ -49,10 +49,13 @@ class Hand extends Model implements JsonPropertyInterface
         $found = collect([]);
 
         foreach ($cards as $card) {
-            $card = new Card($card);
+            if(!$card instanceof Card)
+                $card = new Card($card);
 
-            if(!$hand->contains($card))
-                throw new PinochleRuleException('Cards requested are not in the current players hand');
+            if(!$hand->contains($card)) {
+
+                throw new PinochleRuleException("{$card->friendlyName()} is not in the current players hand");
+            }
 
             $hand = $hand->forget(array_search($card, $hand->toArray()));
             $found->push($card);

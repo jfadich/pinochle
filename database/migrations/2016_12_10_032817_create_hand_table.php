@@ -17,7 +17,7 @@ class CreateHandTable extends Migration
             $table->increments('id');
             $table->unsignedInteger('player_id');
             $table->unsignedInteger('round_id');
-            $table->string('original');
+            $table->string('dealt');
             $table->string('current');
             $table->text('analysis')->nullable();
             $table->timestamps();

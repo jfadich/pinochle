@@ -6,6 +6,7 @@ use App\Exceptions\PinochleRuleException;
 use App\Pinochle\AutoPlayer;
 use App\Pinochle\Cards\Card;
 use App\Pinochle\Models\Game;
+use App\Pinochle\Models\Hand;
 use App\Pinochle\Pinochle;
 use App\Pinochle\Models\Player;
 use App\Pinochle\Models\Round;
@@ -24,7 +25,8 @@ class GameController extends Controller
             $hands->push([
                 'seat' => $key,
                 'player' => $hand->player,
-                'cards' => $hand->getCards(),
+                'cards' => $hand->getDealtCards(),
+                'current' => $hand->getCards(),
                 'trump' => new Card($trump),
                 'meld'  => $analysis->getMeld($trump),
                 'potential' => $analysis->getMeldPotential($trump),

@@ -141,6 +141,50 @@ class HandAnalyser
         return $wishList;
     }
 
+    public function getPass($trump)
+    {
+        $pass = collect([]);
+        $step = 0;
+        $cards = $this->cards;
+
+        if($trump instanceof Card)
+            $trump = $trump->getSuit();
+
+        do {
+            $step++;
+
+            foreach ($cards as $card) {
+                if($pass->count() >= 4)
+                    return $pass->take(4);
+
+                $add = false;
+                /** @var $card Card */
+                switch($step) {
+                    case 1: $add = $card->isSuit($trump) && !$card->isRank(Card::RANK_NINE);
+                        break;
+                    case 2: $add = $card->isRank(Card::RANK_ACE);
+                        break;
+                    case 3: if($trump === Card::SUIT_SPADES || $trump === Card::SUIT_DIAMONDS) {
+                        $add = $card->isCard(new Card(Card::RANK_QUEEN, Card::SUIT_SPADES)) ||
+                            $card->isCard(new Card(Card::RANK_JACK, Card::SUIT_DIAMONDS));
+                    } break;
+                    case 4: $add = $card->isSuit($trump) && $card->isRank(Card::RANK_NINE);
+                        break;
+                    default:
+                        $add = true;
+                        break;
+                }
+
+                if($add) {
+                    $pass->push($card);
+                }
+            }
+
+        } while($pass->count() < 4);
+
+        return $pass->take(4);
+    }
+
     public function getPassBack($trump)
     {
         $suits = $this->getPlayingPower($trump, false)->sortBy('power');

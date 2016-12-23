@@ -23,6 +23,17 @@
 
                     @endforeach
                 </div>
+
+                <hr>
+                <div class="row">
+
+                    @foreach($hand['current'] as $k => $card)
+                        <div class="col-md-1">
+                            <img src="/images/cards/card{{ $card->getSuitName() }}{{ $card->getRankName(true) }}.png" class="img-responsive">
+                        </div>
+
+                    @endforeach
+                </div>
 <hr>
 
                 <div class="row">

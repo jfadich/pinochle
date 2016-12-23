@@ -29,11 +29,11 @@ class AutoPlayer
 
         return $power + (($potential['total'] + ($safety * 12)) );
     }
+
     public function callTrump()
     {
         if($this->hand->analysis()->has('trump'))
             return $this->hand->analysis('trump');
-
 
         $suits = $this->hand->getCards()->groupBy(function(Card $card) {
             return $card->getSuit();
@@ -64,18 +64,14 @@ class AutoPlayer
         $currentBid = $bids->max('bid');
         $nextBid = $currentBid + 10;
 
-        if($partnerPassed)
-            return $maxBid >= $nextBid ? $nextBid : 'pass' ;
-
         $partnersBids = $bids->filter(function($bid) use($partnerSeat) {
             return $bid['seat'] == $partnerSeat;
         })->sortByDesc('bid');
 
-        if($partnersBids->first()->under ?? false) {
-            return $maxBid > 200 ? $nextBid : 'pass';
-        }
+        if($partnerPassed || $partnersBids->first()['under'] ?? false)
+            return $maxBid >= $nextBid ? $nextBid : 'pass' ;
 
-        if($partnersBids->first()->jump ?? false)
+        if($partnersBids->first()['jump'] ?? false)
             return 'pass';
 
         return $maxBid - $currentBid > 250 ? $nextBid : 'pass';

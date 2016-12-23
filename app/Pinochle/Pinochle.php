@@ -53,7 +53,7 @@ class Pinochle
         $hands = Deck::make()->deal();
         $hands->each(function($cards, $key) {
             $this->game->currentRound->hands()->create([
-                'original' => $cards,
+                'dealt' => $cards,
                 'current' => $cards,
                 'player_id' => $this->game->players[$key]->id
             ]);
@@ -109,14 +109,16 @@ class Pinochle
 
         $this->game->currentRound->phase = Round::PHASE_PASSING;
 
-        $nextPlayer = $this->setNextPlayer(1);
-
-        if($nextPlayer->isAuto()) {
-
-        }
-
         $this->game->addLog($player->id, "{$player->getName()} called {$trump->getSuitName()} for trump");
 
+        $nextPlayer = $this->setNextPlayer(1);
+
+
+        if($nextPlayer->isAuto()) {
+            $pass = $nextPlayer->getAutoPlayer($this->game->currentRound->id)->getPass($trump);
+
+            $this->passCards($nextPlayer, $pass);
+        }
     }
 
     public function passCards(Player $player, $pass)
@@ -136,6 +138,8 @@ class Pinochle
         $pass = $player->getCurrentHand()->takeCards($pass);
         $partner->getCurrentHand()->addCards($pass);
 
+        $this->game->addLog($player->id, "{$player->getName()} passed cards to {$partner->getName()}");
+
         if($isLeader) {
             $this->game->currentRound->phase = Round::PHASE_MELDING;
 
@@ -144,7 +148,7 @@ class Pinochle
                 $analysis = new HandAnalyser($player->getCurrentHand()->getCards());
                 $meld = $analysis->getMeld($this->game->currentRound->trump);
 
-                $this->game->currentRound->meld()->merge("players.{$player->seat}", $meld);
+                $this->game->currentRound->meld()->set("players.{$player->seat}", $meld);
 
                 if($player->isAuto()) {
                     $this->game->currentRound->meld()->push('ready', $player->seat);
@@ -152,11 +156,12 @@ class Pinochle
             });
 
             $this->game->currentRound->save();
+        } else {
+            if($partner->isAuto()) {
+                $pass = $partner->getAutoPlayer($this->game->currentRound->id)->getPassBack($this->game->currentRound->trump);
+                $this->passCards($partner, $pass);
+            }
         }
-
-        $this->game->addLog($player->id, "{$player->getName()} passed cards to {$partner->getName()}");
-
-
     }
 
     protected function setNextBidder()

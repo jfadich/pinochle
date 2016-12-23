@@ -40,7 +40,7 @@ class Player extends Model
 
     public function getAutoPlayer($round, $reset  = false)
     {
-        if($reset || $this->autPlayer === null)
+        if($reset || $this->autoPlayer === null)
             $this->autoPlayer = new AutoPlayer($this->getHandForRound($round));
 
         return $this->autoPlayer;
