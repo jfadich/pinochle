@@ -11,6 +11,23 @@
 |
 */
 
+use App\Pinochle\Cards\Card;
+use App\Pinochle\Game;
+
+Route::get('games/{game}/analysis', 'GameController@analysis');
+Route::get('games/{game}', 'GameController@play');
+
 Route::get('/', function () {
-    return view('welcome');
+    $hands = App\Pinochle\Cards\Deck::make()->deal();
+    $hand = $hands[0];
+
+    $trump = $hand->callTrump();
+    $meld = $hand->getMeld($trump);
+
+//dd((new App\Pinochle\Meld())->availableMeld(8),$hands);
+    return view('welcome', compact('hand', 'meld', 'trump'));
 });
+
+Auth::routes();
+
+Route::get('/home', 'HomeController@index');
