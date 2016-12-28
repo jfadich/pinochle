@@ -67,13 +67,7 @@ class Pinochle
 
     public function placeBid(Player $player, $bid)
     {
-        if(!$this->game->currentRound->isPhase(Round::PHASE_BIDDING))
-            throw new PinochleRuleException('Game is currently not bidding');
-        if($this->game->getCurrentPlayer()->id !== $player->id) {
-            //dd($this->game->getCurrentPlayer(), $player);
-
-            throw new PinochleRuleException('It\'s not your turn');
-        }
+        $this->validateGameState($player, Round::PHASE_BIDDING);
 
         if(in_array($player->seat, $this->game->currentRound->auction('passers', [])))
             throw new PinochleRuleException('You have already passed this round');
@@ -99,11 +93,7 @@ class Pinochle
         if(is_int($trump))
             $trump = new Card($trump);
 
-        if(!$this->game->currentRound->isPhase(Round::PHASE_CALLING))
-            throw new PinochleRuleException('Game is currently not calling');
-
-        if($this->game->getCurrentPlayer()->id !== $player->id)
-            throw new PinochleRuleException('It\'s not your turn');
+        $this->validateGameState($player, Round::PHASE_CALLING);
 
         $this->game->currentRound->setTrump($trump);
 
@@ -123,8 +113,7 @@ class Pinochle
 
     public function passCards(Player $player, $pass)
     {
-        if(!$this->game->currentRound->isPhase(Round::PHASE_PASSING))
-            throw new PinochleRuleException('Game is currently not bidding');
+        $this->validateGameState($player, Round::PHASE_PASSING);
 
         $isLeader = $this->game->currentRound->lead_seat === $this->game->currentRound->active_seat;
 
@@ -178,6 +167,13 @@ class Pinochle
         $this->game->currentRound->save();
     }
 
+    public function playTrick(Player $player)
+    {
+        $this->validateGameState($player, Round::PHASE_PLAYING);
+
+
+    }
+
     protected function setNextBidder()
     {
         $nextPlayer = $this->setNextPlayer();
@@ -222,6 +218,15 @@ class Pinochle
         $activeSeat = $this->game->currentRound->active_seat;
 
         return ($activeSeat + 1 + $sameTeam ) & 3;
+    }
+
+    protected function validateGameState(Player $player, $phase)
+    {
+        if(!$this->game->currentRound->isPhase($phase))
+            throw new PinochleRuleException("Game is currently not $phase");
+
+        if($this->game->getCurrentPlayer()->id !== $player->id)
+            throw new PinochleRuleException('It\'s not your turn');
     }
 
 }
