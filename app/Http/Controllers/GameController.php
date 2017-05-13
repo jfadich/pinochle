@@ -5,11 +5,11 @@ namespace App\Http\Controllers;
 use App\Exceptions\PinochleRuleException;
 use App\Pinochle\AutoPlayer;
 use App\Pinochle\Cards\Card;
-use App\Pinochle\Models\Game;
-use App\Pinochle\Models\Hand;
+use App\Models\Game;
+use App\Models\Hand;
 use App\Pinochle\Pinochle;
-use App\Pinochle\Models\Player;
-use App\Pinochle\Models\Round;
+use App\Models\Player;
+use App\Models\Round;
 use Illuminate\Http\Request;
 
 class GameController extends Controller
@@ -135,7 +135,7 @@ class GameController extends Controller
 
         $pinochle = Pinochle::make($game);
 
-        $pinochle->setMeldReady($request->get('seat'));
+        $pinochle->acceptMeld($request->get('seat'));
 
         return redirect("/games/{$game->id}");
     }

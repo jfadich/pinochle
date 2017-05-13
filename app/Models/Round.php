@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Pinochle\Models;
+namespace App\Models;
 
 use App\Pinochle\Cards\Card;
 use Illuminate\Database\Eloquent\Model;

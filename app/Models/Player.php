@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Pinochle\Models;
+namespace App\Models;
 
 use App\Pinochle\AutoPlayer;
-use App\Pinochle\Models\Hand;
+use App\Models\Hand;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 

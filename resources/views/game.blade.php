@@ -70,7 +70,7 @@
         </div>
         <div id="player-hand">
 
-            @if($game->currentRound->phase === \App\Pinochle\Models\Round::PHASE_PASSING)
+            @if($game->currentRound->phase === \App\Pinochle\Contracts\Round::PHASE_PASSING)
                 <form method="post" action="/api/games/{{$game->id}}/pass" style="display: inherit">
                     {{ csrf_field() }}
                     <input type="hidden" name="player" value="{{ $game->getCurrentPlayer()->id }}">
