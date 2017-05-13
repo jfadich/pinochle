@@ -17,8 +17,7 @@ class GameController extends Controller
     public function analysis(Game $game)
     {
         $hands = collect([]);
-
-        foreach($game->currentRound->hands as $key => $hand) {
+        foreach($game->currentRound->hands()->get() as $key => $hand) {
 
             // Save current hand or reference, but reset the hand as dealt for analysis.
             $dealt = $hand->getDealtCards();
@@ -66,7 +65,15 @@ class GameController extends Controller
             'name' => 'required|max:255'
         ]);
 
-        $game = Pinochle::make($request->get('name'))->deal()->getGame();
+        $game = Game::create(['name' => $request->get('name'), 'join_code' => str_random('12')]);
+
+        // TODO Add 'addPlayer' methods
+        $game->addPlayer(['seat' => 0, 'user_id' => null]);
+        $game->addPlayer(['seat' => 1, 'user_id' => 1]);
+        $game->addPlayer(['seat' => 2, 'user_id' => null]);
+        $game->addPlayer(['seat' => 3, 'user_id' => null]);
+
+        (new Pinochle($game))->deal();
 
         return redirect("/games/{$game->id}");
     }
@@ -83,7 +90,7 @@ class GameController extends Controller
             'bid' => 'required'
         ]);
 
-        $pinochle = Pinochle::make($game);
+        $pinochle = new Pinochle($game);
 
         $new_bid = $request->get('bid');
 

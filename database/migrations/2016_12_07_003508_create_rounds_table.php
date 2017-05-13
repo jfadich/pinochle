@@ -18,7 +18,6 @@ class CreateRoundsTable extends Migration
             $table->unsignedSmallInteger('number')->default(1);
             $table->string('phase')->default('dealing');
             $table->unsignedTinyInteger('lead_seat')->default(0);
-            $table->unsignedTinyInteger('active_seat')->default(0);
             $table->unsignedInteger('game_id');
             $table->unsignedInteger('trump')->nullable();
             $table->integer('score_team_0')->default(0);

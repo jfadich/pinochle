@@ -3,6 +3,8 @@
 namespace App\Pinochle\Contracts;
 
 
+use App\Pinochle\Cards\Card;
+
 interface Round
 {
     const PHASE_DEALING = 'dealing';
@@ -25,6 +27,12 @@ interface Round
     public function getHands();
 
     /**
+     * @param Card $trump
+     * @return mixed
+     */
+    public function setTrump(Card $trump);
+
+    /**
      * @param string $phase
      * @return Round
      */
@@ -42,13 +50,7 @@ interface Round
     public function isPhase($phase);
 
     /**
-     * @param int $sameTeam
-     * @return int
+     * @return Auction
      */
-    public function setNextPlayer(int $sameTeam = 0);
-
-    /**
-     * @return int
-     */
-    public function getNextSeat();
+    public function getAuction();
 }

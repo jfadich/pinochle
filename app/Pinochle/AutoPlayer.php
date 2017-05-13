@@ -4,7 +4,7 @@ namespace App\Pinochle;
 
 
 use App\Pinochle\Cards\Card;
-use App\Pinochle\Models\Hand;
+use App\Pinochle\Contracts\Hand;
 
 class AutoPlayer
 {

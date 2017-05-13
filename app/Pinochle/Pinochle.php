@@ -18,19 +18,9 @@ class Pinochle
 
     protected $currentRound;
 
-    public static function make($game)
+    public function __construct(Game $game)
     {
-        if(!$game instanceof Game) {
-            $game = Game::make(['name' => $game]);
-
-            // TODO Add 'addPlayer' methods
-            $game->addPlayer(['seat' => 0, 'user_id' => null]);
-            $game->addPlayer(['seat' => 1, 'user_id' => 1]);
-            $game->addPlayer(['seat' => 2, 'user_id' => null]);
-            $game->addPlayer(['seat' => 3, 'user_id' => null]);
-        }
-
-        return (new static())->setGame($game);
+        $this->setGame($game);
     }
 
     public function setGame(Game $game)
@@ -47,21 +37,26 @@ class Pinochle
 
     public function deal()
     {
-        if($this->game->getPlayers()->count() !== 4) {
+        if(count($this->game->getPlayers()) !== 4) {
             throw new PinochleRuleException('Not Enough Players');
         }
 
+        if(count($this->game->getRounds()) > 0)
+            throw new PinochleRuleException('Game has already started.');
+
+        $round = $this->game->nextRound();
+
         $hands = Deck::make()->deal();
-        $hands->each(function($cards, $key) {
-            $this->game->getCurrentRound()->addHand([
+        $hands->each(function($cards, $key) use($round) {
+            $round->addHand([
                 'dealt' => $cards,
                 'current' => $cards,
                 'player_id' => $this->game->getPlayers()[$key]->id
             ]);
         });
 
-        $this->game->getCurrentRound()->setPhase(Round::PHASE_BIDDING);
-        $this->setNextPlayer();
+        $round->setPhase(Round::PHASE_BIDDING);
+        $this->game->setNextPlayer();
 
         return $this;
     }
@@ -96,13 +91,15 @@ class Pinochle
 
         $this->validateGameState($player, Round::PHASE_CALLING);
 
-        $this->game->currentRound->setTrump($trump);
+        $round = $this->game->getCurrentRound();
 
-        $this->game->currentRound->phase = Round::PHASE_PASSING;
+        $round->setTrump($trump);
+
+        $round->setPhase(Round::PHASE_PASSING);
 
         $this->game->addLog($player->id, "{$player->getName()} called {$trump->getSuitName()} for trump");
 
-        $nextPlayer = $this->setNextPlayer(1);
+        $nextPlayer = $this->game->setNextPlayer(1);
 
 
         if($nextPlayer->isAuto()) {
@@ -116,13 +113,15 @@ class Pinochle
     {
         $this->validateGameState($player, Round::PHASE_PASSING);
 
-        $isLeader = $this->game->currentRound->lead_seat === $this->game->currentRound->active_seat;
+        $round = $this->game->getCurrentRound();
+
+        $isLeader = $round->lead_seat === $this->game->active_seat;
 
         if($isLeader) {
-            $partner = $this->getNextSeat(1);
+            $partner = $this->game->getNextSeat(1);
             $partner = $this->game->getPlayerAtSeat($partner);
         } else {
-            $partner = $this->setNextPlayer(1);
+            $partner = $this->game->setNextPlayer(1);
         }
 
         $pass = $player->getCurrentHand()->takeCards($pass);
@@ -186,20 +185,22 @@ class Pinochle
 
     protected function setNextBidder()
     {
-        $nextPlayer = $this->setNextPlayer();
+        $round = $this->game->getCurrentRound();
+        $nextPlayer = $this->game->setNextPlayer();
 
-        if(in_array($this->game->currentRound->active_seat, $this->game->currentRound->auction('passers', [])))
+        if(in_array($this->game->active_seat, $round->auction('passers', [])))
             return $this->setNextBidder();
 
-        if(count($this->game->currentRound->auction('passers')) === 3) {
-            $this->game->currentRound->phase = Round::PHASE_CALLING;
-            $this->game->currentRound->buy()->merge($this->game->currentRound->getCurrentBid(), ['seat', 'bid']);
-            $this->game->currentRound->lead_seat = $this->game->currentRound->active_seat;
+        if(count($round->auction('passers')) === 3) {
+            $round->setPhase(Round::PHASE_CALLING);
+            $round->buy()->merge($round->getCurrentBid(), ['seat', 'bid']);
+            $round->lead_seat = $this->game->active_seat;
 
-            $this->game->currentRound->save();
+            $round->save();
+            $this->game->save();
 
             if($nextPlayer->isAuto()) {
-                $this->callTrump($nextPlayer, $nextPlayer->getAutoPlayer($this->game->currentRound->id)->callTrump());
+                $this->callTrump($nextPlayer, $nextPlayer->getAutoPlayer($round->id)->callTrump());
                 return;
             }
 
@@ -208,26 +209,11 @@ class Pinochle
 
         if( $nextPlayer->isAuto() ) {
             $player = $nextPlayer->getAutoPlayer($this->game->currentRound->id);
-            $nextBid = $player->getNextBid($this->game->currentRound->auction(), $this->getNextSeat(1));
+            $nextBid = $player->getNextBid($this->game->currentRound->auction(), $this->game->getNextSeat(1));
 
             $this->placeBid($nextPlayer, $nextBid);
         }
 
-    }
-
-    protected function setNextPlayer(int $sameTeam = 0)
-    {
-        $this->game->currentRound->active_seat = $this->getNextSeat($sameTeam);
-        $this->game->currentRound->save();
-
-        return $this->game->getCurrentPlayer();
-    }
-
-    protected function getNextSeat( int $sameTeam = 0)
-    {
-        $activeSeat = $this->game->currentRound->active_seat;
-
-        return ($activeSeat + 1 + $sameTeam ) & 3;
     }
 
     protected function validateGameState(Player $player, $phase)

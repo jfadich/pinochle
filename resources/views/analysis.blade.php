@@ -72,7 +72,7 @@
 
                     </div>
                     <div class="col-md-4">
-                        @if($game->currentRound->phase === \App\Pinochle\Models\Round::PHASE_BIDDING && $game->currentRound->active_seat === $hand['player']->seat)
+                        @if($game->currentRound->phase === \App\Pinochle\Contracts\Round::PHASE_BIDDING && $game->currentRound->active_seat === $hand['player']->seat)
                             <div class="row">
                                 <form action="/api/games/{{ $game->id }}/bids" method="post">
                                     {{ csrf_field() }}

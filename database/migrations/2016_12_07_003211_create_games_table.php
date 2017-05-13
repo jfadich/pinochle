@@ -16,9 +16,10 @@ class CreateGamesTable extends Migration
         Schema::create('games', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
+            $table->unsignedTinyInteger('active_seat')->default(0);
             $table->string('join_code')->index();
             $table->boolean('active')->default(1);
-            $table->text('log');
+            $table->text('log')->nullable();
             $table->timestamps();
         });
     }

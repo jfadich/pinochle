@@ -3,11 +3,10 @@
 namespace App\Models;
 
 use App\Pinochle\AutoPlayer;
-use App\Models\Hand;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 
-class Player extends Model
+class Player extends Model implements \App\Pinochle\Contracts\Player
 {
     public $fillable = ['seat', 'user_id'];
 

@@ -11,7 +11,7 @@ use Illuminate\Support\Collection;
 use Jfadich\JsonProperty\JsonPropertyInterface;
 use Jfadich\JsonProperty\JsonPropertyTrait;
 
-class Hand extends Model implements JsonPropertyInterface
+class Hand extends Model implements JsonPropertyInterface, \App\Pinochle\Contracts\Hand
 {
     use JsonPropertyTrait;
 

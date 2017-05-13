@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use App\Pinochle\Cards\Card;
+use App\Models\Hand;
+use App\Pinochle\Contracts\Auction;
 use Illuminate\Database\Eloquent\Model;
 use Jfadich\JsonProperty\JsonPropertyInterface;
 use Jfadich\JsonProperty\JsonPropertyTrait;
 
-class Round extends Model implements JsonPropertyInterface
+class Round extends Model implements JsonPropertyInterface, \App\Pinochle\Contracts\Round
 {
     use JsonPropertyTrait;
 
@@ -80,5 +82,51 @@ class Round extends Model implements JsonPropertyInterface
             $this->auction()->push('bids', ['seat' => $this->lead_seat, 'bid' => 250, 'under' => true]);
 
         return collect($this->auction('bids'))->sortByDesc('bid');
+    }
+
+    /**
+     * @param array $hand
+     * @return Hand
+     */
+    public function addHand($hand)
+    {
+        return $this->hands()->create($hand);
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getHands()
+    {
+        return $this->hands;
+    }
+
+    /**
+     * @param string $phase
+     * @return \App\Pinochle\Contracts\Round
+     */
+    public function setPhase($phase)
+    {
+        $this->phase = $phase;
+
+        $this->save();
+
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPhase()
+    {
+        return $this->phase;
+    }
+
+    /**
+     * @return Auction
+     */
+    public function getAuction()
+    {
+        return $this->auction();
     }
 }

@@ -6,12 +6,6 @@ namespace App\Pinochle\Contracts;
 interface Game
 {
     /**
-     * @param array $game
-     * @return Game
-     */
-    public static function make($game);
-
-    /**
      * @return Round
      */
     public function getCurrentRound();
@@ -28,9 +22,22 @@ interface Game
     public function addPlayer($player);
 
     /**
-     * @return \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection
+     * @return array
      */
     public function getPlayers();
+
+    public function getCurrentPlayer();
+
+    /**
+     * @param int $sameTeam
+     * @return Player
+     */
+    public function setNextPlayer(int $sameTeam = 0);
+
+    /**
+     * @return int
+     */
+    public function getNextSeat();
 
     /**
      * @return Round

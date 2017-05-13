@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Round;
 use Illuminate\Database\Eloquent\Model;
 
-class Game extends Model
+class Game extends Model implements \App\Pinochle\Contracts\Game
 {
-    public $fillable = ['name'];
+    public $fillable = ['name', 'join_code'];
 
     public $with = ['players', 'rounds'];
 
@@ -25,6 +26,11 @@ class Game extends Model
         return $this->hasMany(Player::class, 'game_id')->orderBy('seat', 'asc');
     }
 
+    public function addPlayer($attributes)
+    {
+        return $this->players()->create($attributes);
+    }
+
     public function rounds()
     {
         return $this->hasMany(Round::class, 'game_id');
@@ -37,7 +43,7 @@ class Game extends Model
 
     public function getCurrentPlayer()
     {
-        return $this->getPlayerAtSeat($this->currentRound->active_seat);
+        return $this->getPlayerAtSeat($this->active_seat);
     }
 
     public function getPlayerAtSeat($seat)
@@ -62,5 +68,55 @@ class Game extends Model
 
         $this->log = $log;
         $this->save();
+    }
+
+    /**
+     * @return Round
+     */
+    public function getCurrentRound()
+    {
+        return $this->currentRound;
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getRounds()
+    {
+        return $this->rounds;
+    }
+
+    /**
+     * @return \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getPlayers()
+    {
+        return $this->players;
+    }
+
+    /**
+     * @return Round
+     */
+    public function nextRound()
+    {
+        $rounds = $this->rounds;
+
+        if($rounds->isEmpty())
+            return $this->rounds()->create([]);
+        // TODO: Implement nextRound() method.
+    }
+
+
+    public function setNextPlayer(int $sameTeam = 0)
+    {
+        $this->active_seat = $this->getNextSeat($sameTeam);
+        $this->save();
+
+        return $this->getCurrentPlayer();
+    }
+
+    public function getNextSeat( int $sameTeam = 0 )
+    {
+        return ($this->active_seat + 1 + $sameTeam ) & 3;
     }
 }

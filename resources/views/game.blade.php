@@ -65,8 +65,8 @@
                 <hr>
             @endif
 
-            @include("game-states.{$game->currentRound->phase}")
-            <i class="fa fa-5x fa-arrow-{{ ['right', 'down', 'left', 'up'][$game->currentRound->active_seat] }}"></i>
+            @include("game-states.{$game->getCurrentRound()->phase}")
+            <i class="fa fa-5x fa-arrow-{{ ['right', 'down', 'left', 'up'][$game->active_seat] }}"></i>
         </div>
         <div id="player-hand">
 
@@ -116,12 +116,12 @@
                         <tr>
                             <th>Round {{ $round->number }}</th>
                             <td>
-                                @if($game->currentRound->active_seat & $game->getCurrentPlayer()->seat & 0 )
+                                @if($game->active_seat & $game->getCurrentPlayer()->seat & 0 )
                                 {{ $game->currentRound->phase }}
                                 @endif
                             </td>
                             <td>
-                                @if($game->currentRound->active_seat & $game->getCurrentPlayer()->seat & 1 )
+                                @if($game->active_seat & $game->getCurrentPlayer()->seat & 1 )
                                     {{ $game->currentRound->phase }}
                                 @endif
                             </td>
