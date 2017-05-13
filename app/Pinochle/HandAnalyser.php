@@ -62,8 +62,8 @@ class HandAnalyser
     {
         $wishList = collect([]);
 
-        $this->checkMeldPotential(MeldRules::fourOfAKind(Card::RANK_ACE), $wishList);
         $this->checkMeldPotential(MeldRules::run($trump), $wishList);
+        $this->checkMeldPotential(MeldRules::fourOfAKind(Card::RANK_ACE), $wishList);
 
         if($trump === Card::SUIT_SPADES || $trump === Card::SUIT_DIAMONDS)
             $this->checkMeldPotential(MeldRules::pinochle()->merge(MeldRules::pinochle()), $wishList, false);
