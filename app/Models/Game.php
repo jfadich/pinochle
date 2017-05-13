@@ -12,6 +12,14 @@ class Game extends Model
 
     public $casts = ['log' => 'array'];
 
+    public static function make($attributes)
+    {
+        $game = static::create($attributes);
+        $game->rounds()->create([]);
+
+        return $game;
+    }
+
     public function players()
     {
         return $this->hasMany(Player::class, 'game_id')->orderBy('seat', 'asc');

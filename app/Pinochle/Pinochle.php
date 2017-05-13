@@ -2,16 +2,18 @@
 
 namespace App\Pinochle;
 
-
 use App\Exceptions\PinochleRuleException;
 use App\Pinochle\Cards\Card;
 use App\Pinochle\Cards\Deck;
-use App\Pinochle\Models\Game;
-use App\Pinochle\Models\Player;
-use App\Pinochle\Models\Round;
+use App\Pinochle\Contracts\Game;
+use App\Pinochle\Contracts\Player;
+use App\Pinochle\Contracts\Round;
 
 class Pinochle
 {
+    /**
+     * @var Game
+     */
     protected $game;
 
     protected $currentRound;
@@ -19,14 +21,13 @@ class Pinochle
     public static function make($game)
     {
         if(!$game instanceof Game) {
-            $game = Game::create(['name' => $game]);
-            $game->rounds()->create([]);
+            $game = Game::make(['name' => $game]);
 
             // TODO Add 'addPlayer' methods
-            $game->players()->create(['seat' => 0, 'user_id' => null]);
-            $game->players()->create(['seat' => 1, 'user_id' => 1]);
-            $game->players()->create(['seat' => 2, 'user_id' => null]);
-            $game->players()->create(['seat' => 3, 'user_id' => null]);
+            $game->addPlayer(['seat' => 0, 'user_id' => null]);
+            $game->addPlayer(['seat' => 1, 'user_id' => 1]);
+            $game->addPlayer(['seat' => 2, 'user_id' => null]);
+            $game->addPlayer(['seat' => 3, 'user_id' => null]);
         }
 
         return (new static())->setGame($game);
@@ -46,20 +47,20 @@ class Pinochle
 
     public function deal()
     {
-        if($this->game->players->count() !== 4) {
+        if($this->game->getPlayers()->count() !== 4) {
             throw new PinochleRuleException('Not Enough Players');
         }
 
         $hands = Deck::make()->deal();
         $hands->each(function($cards, $key) {
-            $this->game->currentRound->hands()->create([
+            $this->game->getCurrentRound()->addHand([
                 'dealt' => $cards,
                 'current' => $cards,
-                'player_id' => $this->game->players[$key]->id
+                'player_id' => $this->game->getPlayers()[$key]->id
             ]);
         });
 
-        $this->game->currentRound->phase = Round::PHASE_BIDDING;
+        $this->game->getCurrentRound()->setPhase(Round::PHASE_BIDDING);
         $this->setNextPlayer();
 
         return $this;
@@ -153,7 +154,7 @@ class Pinochle
         }
     }
 
-    public function setMeldReady($seat)
+    public function acceptMeld($seat)
     {
         if(!$this->game->currentRound->isPhase(Round::PHASE_MELDING))
             throw new PinochleRuleException('Game is currently not melding');
@@ -167,9 +168,18 @@ class Pinochle
         $this->game->currentRound->save();
     }
 
-    public function playTrick(Player $player)
+    public function playTrick(Player $player, Card $play)
     {
         $this->validateGameState($player, Round::PHASE_PLAYING);
+
+        if($this->game->getCurrentRound()->active_seat === $this->game->getCurrentRound()->lead_seat) {
+
+            $this->game->getCurrentRound()->play_area('lease_suit', $play->getSuit());
+            $this->game->getCurrentRound()->play_area('plays', [$play->getSuit()]);
+            $this->game->getCurrentRound()->save();
+
+            return $this->setNextPlayer();
+        }
 
 
     }
@@ -228,5 +238,4 @@ class Pinochle
         if($this->game->getCurrentPlayer()->id !== $player->id)
             throw new PinochleRuleException('It\'s not your turn');
     }
-
 }
