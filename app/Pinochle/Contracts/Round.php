@@ -7,6 +7,7 @@ use App\Pinochle\Cards\Card;
 
 interface Round
 {
+    const PHASE_SEATING = 'seating';
     const PHASE_DEALING = 'dealing';
     const PHASE_BIDDING = 'bidding';
     const PHASE_CALLING = 'calling';

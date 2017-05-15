@@ -26,7 +26,7 @@ class Game extends Model implements \App\Pinochle\Contracts\Game
         return $this->hasMany(Player::class, 'game_id')->orderBy('seat', 'asc');
     }
 
-    public function addPlayer($attributes)
+    public function addPlayer($seat, $attributes)
     {
         return $this->players()->create($attributes);
     }

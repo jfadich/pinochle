@@ -24,7 +24,8 @@ class CreateHandTable extends Migration
 
             $table->foreign('player_id')->references('id')->on('players')->onUpdate('CASCADE')->onDelete('CASCADE');
             $table->foreign('round_id')->references('id')->on('rounds')->onUpdate('CASCADE')->onDelete('CASCADE');
-        });    }
+        });
+    }
 
     /**
      * Reverse the migrations.
