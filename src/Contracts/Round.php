@@ -19,12 +19,12 @@ interface Round
      * @param array $hand
      * @return Hand
      */
-    public function addHand($hand);
+    public function addHand($hand) : Hand;
 
     /**
-     * @return \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection
+     * @return array
      */
-    public function getHands();
+    public function getHands() : array;
 
     /**
      * @param Card $trump
@@ -47,10 +47,10 @@ interface Round
      * @param string $phase
      * @return bool
      */
-    public function isPhase($phase);
+    public function isPhase($phase) : bool;
 
     /**
      * @return Auction
      */
-    public function getAuction();
+    public function getAuction() : Auction;
 }

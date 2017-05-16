@@ -5,10 +5,10 @@ namespace jfadich\Pinochle\Contracts;
 
 interface Player
 {
-    public function getName();
+    public function getName() : string;
 
     /**
      * @return bool
      */
-    public function isAuto();
+    public function isAuto() : bool;
 }

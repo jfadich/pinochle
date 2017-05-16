@@ -6,15 +6,17 @@ namespace jfadich\Pinochle\Contracts;
 interface Auction
 {
     /**
+     *
+     *
      * @param Player $player
      * @return bool
      */
-    public function playerHasPassed(Player $player);
+    public function playerHasPassed(Player $player) : bool;
 
     /**
      * @return mixed
      */
-    public function getCurrentBid();
+    public function getCurrentBid() : int;
 
     /**
      * @param Player $player
