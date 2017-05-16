@@ -58,7 +58,7 @@ interface Game
      * @param int $sameTeam
      * @return Player
      */
-    public function setNextPlayer(int $sameTeam = 0) : Player;
+    public function setNextSeat(int $sameTeam = 0) : ?Player;
 
     /**
      * Get the next seat without setting it as the active seat.
