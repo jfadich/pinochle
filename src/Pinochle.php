@@ -48,15 +48,14 @@ class Pinochle
 
         $hands = Deck::make()->deal();
         $hands->each(function($cards, $key) use($round) {
-            $round->addHand([
+            $round->addHand($key, [
                 'dealt' => $cards,
                 'current' => $cards,
-                'player_id' => $this->game->getPlayers()[$key]->id
             ]);
         });
 
         $round->setPhase(Round::PHASE_BIDDING);
-        $this->game->setNextPlayer();
+        $this->game->setNextSeat();
 
         return $this;
     }

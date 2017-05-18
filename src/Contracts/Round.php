@@ -19,7 +19,7 @@ interface Round
      * @param array $hand
      * @return Hand
      */
-    public function addHand($hand) : Hand;
+    public function addHand($seat, $hand) : Hand;
 
     /**
      * @return array
