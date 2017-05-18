@@ -75,7 +75,7 @@ class Card implements \JsonSerializable
         return $this->getSuit() === $suit;
     }
 
-    public function isCard(Card $card)
+    public function isCard(Card $card) : bool
     {
         return $card->getValue() === $this->getValue();
     }
