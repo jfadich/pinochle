@@ -7,6 +7,7 @@ use jfadich\Pinochle\Cards\Card;
 use jfadich\Pinochle\Contracts\Auction;
 use jfadich\Pinochle\Contracts\Hand;
 use jfadich\Pinochle\Contracts\Seat;
+use jfadich\Pinochle\Contracts\Store;
 
 class AutoPlayer
 {
@@ -14,9 +15,10 @@ class AutoPlayer
 
     protected $hand;
 
-    public function __construct(Hand $hand)
+    public function __construct(Hand $hand, Store $store)
     {
         $this->hand = $hand;
+        $this->store = $store;
         $this->analyser = new HandAnalyser($hand->getCurrentCards());
     }
 
@@ -34,10 +36,10 @@ class AutoPlayer
 
     public function callTrump()
     {
-        if($this->hand->analysis()->has('trump'))
-            return $this->hand->analysis('trump');
+        if($this->store->has('trump'))
+            return $this->store->get('trump');
 
-        $suits = collect($this->hand->getCurrentCards())->groupBy(function(Card $card) {
+        $suits = collect($this->hand->getDealtCards())->groupBy(function(Card $card) {
             return $card->getSuit();
         });
 
@@ -50,26 +52,21 @@ class AutoPlayer
             $suitValues[$cards->first()->getSuit()] = $suitPotential;
         });
 
-        $trump = collect($suitValues)->sort()->reverse()->flip()->first();
+        // Sort by the suits potential, flip keys (suits) and values (potential) to get best suit
+        $trump = collect($suitValues)->sort()->flip()->pop();
 
-        $this->hand->analysis('trump', $trump);
+        $this->store->set('trump', $trump);
 
         return $trump;
     }
 
     public function getNextBid(Auction $auction, Seat $partnerSeat)
     {
-        //$bids = collect($currentAuction->get('bids', []));
         $partnerPassed = $auction->seatHasPassed($partnerSeat);
 
         $maxBid = $this->getMaxBid();
-        //$currentBid = $bids->max('bid');
         $currentBid = $auction->getCurrentBid();
         $nextBid = $currentBid + 10;
-
-        //$partnersBids = $bids->filter(function($bid) use($partnerSeat) {
-        //    return $bid['seat'] == $partnerSeat;
-        //})->sortByDesc('bid');
 
         $partnersBids = collect($auction->getBidsForSeat($partnerSeat));
 

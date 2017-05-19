@@ -10,5 +10,5 @@ interface Hand
 
     public function getDealtCards() : array;
 
-    public function getAnalysis() : HandAnalyser;
+    public function getAnalyser() : HandAnalyser;
 }
