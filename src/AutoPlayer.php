@@ -70,7 +70,7 @@ class AutoPlayer
 
         $partnersBids = collect($auction->getBidsForSeat($partnerSeat));
 
-        if($partnerPassed || $partnersBids->first()['under'] ?? false)
+        if($partnersBids->isEmpty() || $partnerPassed || $partnersBids->first()['under'] ?? false)
             return $maxBid >= $nextBid ? $nextBid : 'pass' ;
 
         if($partnersBids->first()['jump'] ?? false)

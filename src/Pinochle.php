@@ -66,7 +66,7 @@ class Pinochle
         return $this;
     }
 
-    public function placeBid(Seat $seat, int $bid)
+    public function placeBid(Seat $seat, $bid)
     {
         $this->validateGameState($seat, Round::PHASE_BIDDING);
         $round = $this->game->getCurrentRound();
@@ -75,7 +75,7 @@ class Pinochle
         if($auction->seatHasPassed($seat))
             throw new PinochleRuleException('You have already passed this round');
 
-        if($bid % 10 !== 0)
+        if(is_numeric($bid) && $bid % 10 !== 0)
             throw new PinochleRuleException('Bid must be a multiple of 10');
 
         $current_bid = $auction->getCurrentBid();
