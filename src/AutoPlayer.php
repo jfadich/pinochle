@@ -3,11 +3,11 @@
 namespace jfadich\Pinochle;
 
 
+use Jfadich\JsonProperty\JsonProperty;
 use jfadich\Pinochle\Cards\Card;
 use jfadich\Pinochle\Contracts\Auction;
 use jfadich\Pinochle\Contracts\Hand;
 use jfadich\Pinochle\Contracts\Seat;
-use jfadich\Pinochle\Contracts\Store;
 
 class AutoPlayer
 {
@@ -15,7 +15,7 @@ class AutoPlayer
 
     protected $hand;
 
-    public function __construct(Hand $hand, Store $store)
+    public function __construct(Hand $hand, JsonProperty $store)
     {
         $this->hand = $hand;
         $this->store = $store;
