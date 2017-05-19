@@ -49,7 +49,12 @@ class Pinochle
 
         $hands = Deck::make()->deal();
         $hands->each(function($cards, $key) use($round) {
-            $round->addHand($key, [
+            $seat = $this->game->getSeatAtPosition($key);
+
+            if(!$seat)
+                throw new \Exception('Seat not filled');
+
+            $round->addHand($seat, [
                 'dealt' => $cards,
                 'current' => $cards,
             ]);
