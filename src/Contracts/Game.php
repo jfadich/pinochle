@@ -23,11 +23,11 @@ interface Game
     /**
      * Create a new player at the given seat.
      *
-     * @param int $seat
+     * @param Seat $seat
      * @param array $player
      * @return Player|null
      */
-    public function addPlayer(int $seat, array $player) : ?Player;
+    public function addPlayer(Seat $seat, array $player) : ?Player;
 
     /**
      * Get an array of current players
@@ -37,19 +37,13 @@ interface Game
     public function getPlayers() : array;
 
     /**
-     * Get player at seat or null if seat is available.
-     *
-     * @param int $seat
-     * @return Player|null
-     */
-    public function getPlayerAtSeat(int $seat) : ?Player;
-
-    /**
      * Get the player who is seated at the active seat
      *
      * @return Player|null
      */
     public function getCurrentPlayer() : ?Player;
+
+    public function getActiveSeat() : Seat;
 
     /**
      * Set the active seat to the next player. If $sameTeam is 1, set the active seat to the next player on the same
@@ -64,9 +58,9 @@ interface Game
      * Get the next seat without setting it as the active seat.
      *
      * @param int $sameTeam
-     * @return int
+     * @return Seat
      */
-    public function getNextSeat(int $sameTeam = 0) : int;
+    public function getNextSeat(int $sameTeam = 0) : Seat;
 
     /**
      * Create the next round of the game. Return null if the game is over.
@@ -74,4 +68,6 @@ interface Game
      * @return Round|null
      */
     public function nextRound() : ?Round;
+
+    public function seatIsActive(Seat $seat) : bool;
 }

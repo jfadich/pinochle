@@ -8,26 +8,37 @@ interface Auction
     /**
      *
      *
-     * @param Player $player
+     * @param Seat $seat
      * @return bool
      */
-    public function playerHasPassed(Player $player) : bool;
+    public function seatHasPassed(Seat $seat) : bool;
+
+    public function getPassedSeats() : array;
 
     /**
      * @return mixed
      */
     public function getCurrentBid() : int;
 
+    public function getBidsForSeat(Seat $seat) : array;
+
     /**
-     * @param Player $player
+     * @param Seat $seat
      * @param int $bid
      * @return mixed
      */
-    public function placeBid(Player $player, $bid);
+    public function placeBid(Seat $seat, $bid);
 
     /**
-     * @param Player $player
+     * @param Seat $seat
      * @return mixed
      */
-    public function pass(Player $player);
+    public function pass(Seat $seat);
+
+    /**
+     * Save current bid as the buy in and end the auction
+     *
+     * @return void
+     */
+    public function closeAuction() : void;
 }

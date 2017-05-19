@@ -4,7 +4,9 @@ namespace jfadich\Pinochle;
 
 
 use jfadich\Pinochle\Cards\Card;
+use jfadich\Pinochle\Contracts\Auction;
 use jfadich\Pinochle\Contracts\Hand;
+use jfadich\Pinochle\Contracts\Seat;
 
 class AutoPlayer
 {
@@ -55,18 +57,21 @@ class AutoPlayer
         return $trump;
     }
 
-    public function getNextBid($currentAuction, $partnerSeat)
+    public function getNextBid(Auction $auction, Seat $partnerSeat)
     {
-        $bids = collect($currentAuction->get('bids', []));
-        $partnerPassed = in_array($partnerSeat, $currentAuction->get('passers', []));
+        //$bids = collect($currentAuction->get('bids', []));
+        $partnerPassed = $auction->seatHasPassed($partnerSeat);
 
         $maxBid = $this->getMaxBid();
-        $currentBid = $bids->max('bid');
+        //$currentBid = $bids->max('bid');
+        $currentBid = $auction->getCurrentBid();
         $nextBid = $currentBid + 10;
 
-        $partnersBids = $bids->filter(function($bid) use($partnerSeat) {
-            return $bid['seat'] == $partnerSeat;
-        })->sortByDesc('bid');
+        //$partnersBids = $bids->filter(function($bid) use($partnerSeat) {
+        //    return $bid['seat'] == $partnerSeat;
+        //})->sortByDesc('bid');
+
+        $partnersBids = collect($auction->getBidsForSeat($partnerSeat));
 
         if($partnerPassed || $partnersBids->first()['under'] ?? false)
             return $maxBid >= $nextBid ? $nextBid : 'pass' ;

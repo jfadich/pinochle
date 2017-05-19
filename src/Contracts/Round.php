@@ -2,6 +2,7 @@
 
 namespace jfadich\Pinochle\Contracts;
 
+use jfadich\Pinochle\AutoPlayer;
 use jfadich\Pinochle\Cards\Card;
 
 interface Round
@@ -16,10 +17,11 @@ interface Round
     const PHASE_COMPLETE = 'complete';
 
     /**
+     * @param Seat $seat
      * @param array $hand
      * @return Hand
      */
-    public function addHand($seat, $hand) : Hand;
+    public function addHand(Seat $seat, array $hand) : Hand;
 
     /**
      * @return array
@@ -38,6 +40,8 @@ interface Round
      */
     public function setPhase($phase);
 
+    public function setLeadSeat(Seat $seat);
+
     /**
      * @return string
      */
@@ -53,4 +57,6 @@ interface Round
      * @return Auction
      */
     public function getAuction() : Auction;
+
+    public function getAutoPlayerForSeat(Seat $seat) : AutoPlayer;
 }

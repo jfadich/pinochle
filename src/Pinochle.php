@@ -2,6 +2,7 @@
 
 namespace jfadich\Pinochle;
 
+use jfadich\Pinochle\Contracts\Seat;
 use jfadich\Pinochle\Exceptions\PinochleRuleException;
 use jfadich\Pinochle\Cards\Card;
 use jfadich\Pinochle\Cards\Deck;
@@ -60,23 +61,25 @@ class Pinochle
         return $this;
     }
 
-    public function placeBid(Player $player, $bid)
+    public function placeBid(Seat $seat, int $bid)
     {
-        $this->validateGameState($player, Round::PHASE_BIDDING);
+        $this->validateGameState($seat, Round::PHASE_BIDDING);
+        $round = $this->game->getCurrentRound();
+        $auction = $round->getAuction();
 
-        if(in_array($player->seat, $this->game->currentRound->auction('passers', [])))
+        if($auction->seatHasPassed($seat))
             throw new PinochleRuleException('You have already passed this round');
 
         if($bid % 10 !== 0)
             throw new PinochleRuleException('Bid must be a multiple of 10');
 
-        $current_bid = $this->game->currentRound->getCurrentBid();
+        $current_bid = $auction->getCurrentBid();
 
         if($bid !== 'pass' && $bid <= $current_bid['bid'])
             throw new PinochleRuleException('Bid must be larger than current bid');
 
-        $this->game->addLog($player->id, "{$player->getName()} bid $bid");
-        $this->game->currentRound->addBid($bid, $player->seat);
+        $this->game->addLog($seat->id, "{$seat->getPlayer()->getName()} bid $bid");
+        $auction->placeBid($seat, $bid);
 
         $this->setNextBidder();
 
@@ -184,43 +187,51 @@ class Pinochle
 
     protected function setNextBidder()
     {
-        $round = $this->game->getCurrentRound();
-        $nextPlayer = $this->game->setNextPlayer();
+        $game = $this->game;
+        $round = $game->getCurrentRound();
+        $auction = $round->getAuction();
 
-        if(in_array($this->game->active_seat, $round->auction('passers', [])))
+        $game->setNextSeat();
+
+        $activeSeat = $game->getActiveSeat();
+        $nextPlayer = $game->getCurrentPlayer();
+
+
+        if($auction->seatHasPassed($activeSeat))
             return $this->setNextBidder();
 
-        if(count($round->auction('passers')) === 3) {
+        if(count($auction->getPassedSeats()) === 3) {
             $round->setPhase(Round::PHASE_CALLING);
-            $round->buy()->merge($round->getCurrentBid(), ['seat', 'bid']);
-            $round->lead_seat = $this->game->active_seat;
+            $auction->closeAuction();
+            //$round->buy()->merge($round->getCurrentBid(), ['seat', 'bid']);
+            $round->setLeadSeat($activeSeat);
+            //$round->lead_seat = $game->active_seat;
 
-            $round->save();
-            $this->game->save();
+            //$round->save();
+            //$game->save();
 
             if($nextPlayer->isAuto()) {
-                $this->callTrump($nextPlayer, $nextPlayer->getAutoPlayer($round->id)->callTrump());
-                return;
+                $this->callTrump($nextPlayer, $round->getAutoPlayerForSeat($activeSeat)->callTrump());
+                return null;
             }
 
-            return;
+            return null;
         }
 
         if( $nextPlayer->isAuto() ) {
-            $player = $nextPlayer->getAutoPlayer($this->game->currentRound->id);
-            $nextBid = $player->getNextBid($this->game->currentRound->auction(), $this->game->getNextSeat(1));
+            $player = $round->getAutoPlayerForSeat($activeSeat);
+            $nextBid = $player->getNextBid($auction, $this->game->getNextSeat(1));
 
-            $this->placeBid($nextPlayer, $nextBid);
+            $this->placeBid($activeSeat, $nextBid);
         }
-
     }
 
-    protected function validateGameState(Player $player, $phase)
+    protected function validateGameState(Seat $seat, $phase)
     {
-        if(!$this->game->currentRound->isPhase($phase))
+        if(!$this->game->getCurrentRound()->isPhase($phase))
             throw new PinochleRuleException("Game is currently not $phase");
 
-        if($this->game->getCurrentPlayer()->id !== $player->id)
+        if(!$this->game->seatIsActive($seat))
             throw new PinochleRuleException('It\'s not your turn');
     }
 }
