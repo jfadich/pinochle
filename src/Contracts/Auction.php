@@ -22,6 +22,8 @@ interface Auction
 
     public function getBidsForSeat(Seat $seat) : array;
 
+    public function getBids() : array;
+
     /**
      * @param Seat $seat
      * @param int $bid

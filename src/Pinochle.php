@@ -61,7 +61,7 @@ class Pinochle
         });
 
         $round->setPhase(Round::PHASE_BIDDING);
-        $this->game->setNextSeat();
+        $this->game->setNextSeat(1);
 
         return $this;
     }

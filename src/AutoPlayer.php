@@ -17,7 +17,7 @@ class AutoPlayer
     public function __construct(Hand $hand)
     {
         $this->hand = $hand;
-        $this->analyser = new HandAnalyser($hand->getCards());
+        $this->analyser = new HandAnalyser($hand->getCurrentCards());
     }
 
     public function getMaxBid()
@@ -37,7 +37,7 @@ class AutoPlayer
         if($this->hand->analysis()->has('trump'))
             return $this->hand->analysis('trump');
 
-        $suits = $this->hand->getCards()->groupBy(function(Card $card) {
+        $suits = collect($this->hand->getCurrentCards())->groupBy(function(Card $card) {
             return $card->getSuit();
         });
 
