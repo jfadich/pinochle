@@ -117,7 +117,7 @@ class Pinochle
         }
     }
 
-    public function passCards(Seat $seat, $pass)
+    public function passCards(Seat $seat, array $pass)
     {
         $this->validateGameState($seat, Round::PHASE_PASSING);
 
@@ -154,8 +154,8 @@ class Pinochle
 
             $this->game->currentRound->save();
         } else {
-            if($partner->isAuto()) {
-                $pass = $partner->getAutoPlayer($this->game->currentRound->id)->getPassBack($this->game->currentRound->trump);
+            if($partner->getPlayer()->isAuto()) {
+                $pass = $round->getAutoPlayerForSeat($partner)->getPassBack($round->getTrump());
                 $this->passCards($partner, $pass);
             }
         }
