@@ -28,6 +28,8 @@ interface Round
      */
     public function getHands() : array;
 
+    public function getHandForSeat(Seat $seat) : Hand;
+
     /**
      * @param Card $trump
      * @return mixed
@@ -41,6 +43,8 @@ interface Round
     public function setPhase($phase);
 
     public function setLeadSeat(Seat $seat);
+
+    public function getLeadSeat(): Seat;
 
     /**
      * @return string

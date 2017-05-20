@@ -91,12 +91,12 @@ class Pinochle
         return $bid;
     }
 
-    public function callTrump(Player $player, $trump)
+    public function callTrump(Seat $seat, $trump)
     {
         if(is_int($trump))
             $trump = new Card($trump);
 
-        $this->validateGameState($player, Round::PHASE_CALLING);
+        $this->validateGameState($seat, Round::PHASE_CALLING);
 
         $round = $this->game->getCurrentRound();
 
@@ -104,42 +104,43 @@ class Pinochle
 
         $round->setPhase(Round::PHASE_PASSING);
 
+        $player = $this->game->getActiveSeat()->getPlayer();
+
         $this->game->addLog($player->id, "{$player->getName()} called {$trump->getSuitName()} for trump");
 
-        $nextPlayer = $this->game->setNextPlayer(1);
+        $nextSeat = $this->game->setNextSeat(1);
 
+        if($nextSeat->getPlayer()->isAuto()) {
+            $pass = $round->getAutoPlayerForSeat($nextSeat)->getPass($trump);
 
-        if($nextPlayer->isAuto()) {
-            $pass = $nextPlayer->getAutoPlayer($this->game->currentRound->id)->getPass($trump);
-
-            $this->passCards($nextPlayer, $pass);
+            $this->passCards($nextSeat, $pass);
         }
     }
 
-    public function passCards(Player $player, $pass)
+    public function passCards(Seat $seat, $pass)
     {
-        $this->validateGameState($player, Round::PHASE_PASSING);
+        $this->validateGameState($seat, Round::PHASE_PASSING);
 
         $round = $this->game->getCurrentRound();
 
-        $isLeader = $round->lead_seat === $this->game->active_seat;
+        $isLeader = $round->getLeadSeat()->getPosition() === $this->game->getActiveSeat()->getPosition();
 
         if($isLeader) {
             $partner = $this->game->getNextSeat(1);
-            $partner = $this->game->getPlayerAtSeat($partner);
         } else {
-            $partner = $this->game->setNextPlayer(1);
+            $partner = $this->game->setNextSeat(1);
         }
 
-        $pass = $player->getCurrentHand()->takeCards($pass);
-        $partner->getCurrentHand()->addCards($pass);
+        $pass = $round->getHandForSeat($seat)->takeCards($pass);
+        $round->getHandForSeat($partner)->addCards($pass);
 
-        $this->game->addLog($player->id, "{$player->getName()} passed cards to {$partner->getName()}");
+        $player = $seat->getPlayer();
+        $this->game->addLog($player->id, "{$player->getName()} passed cards to {$partner->getPlayer()->getName()}");
 
         if($isLeader) {
-            $this->game->currentRound->phase = Round::PHASE_MELDING;
+            $this->game->getCurrentRound()->setPhase(Round::PHASE_MELDING);
 
-            $this->game->players->each(function($player) {
+            $this->game->getPlayers()->each(function($player) {
 
                 $analysis = new HandAnalyser($player->getCurrentHand()->getCards());
                 $meld = $analysis->getMeld($this->game->currentRound->trump);

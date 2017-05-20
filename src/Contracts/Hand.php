@@ -10,5 +10,9 @@ interface Hand
 
     public function getDealtCards() : array;
 
+    public function addCards(array $cards);
+
+    public function takeCards(array $cards) : array;
+
     public function getAnalyser() : HandAnalyser;
 }

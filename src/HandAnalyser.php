@@ -167,8 +167,7 @@ class HandAnalyser
                     case 3: $add = $card->isSuit($trump) && $card->isRank(Card::RANK_NINE);
                         break;
                     case 4: if($trump === Card::SUIT_SPADES || $trump === Card::SUIT_DIAMONDS) {
-                        $add = $card->isCard(new Card(Card::RANK_QUEEN, Card::SUIT_SPADES)) ||
-                            $card->isCard(new Card(Card::RANK_JACK, Card::SUIT_DIAMONDS));
+                        $add = $card->isLegOfPinochle();
                     } break;
                     default:
                         $add = true;
