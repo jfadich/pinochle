@@ -36,6 +36,8 @@ interface Round
      */
     public function setTrump(Card $trump);
 
+    public function getTrump() : int;
+
     /**
      * @param string $phase
      * @return Round

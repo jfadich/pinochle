@@ -155,7 +155,7 @@ class HandAnalyser
 
             foreach ($cards as $card) {
                 if($pass->count() >= 4)
-                    return $pass->take(4);
+                    return $pass->take(4)->toArray();
 
                 $add = false;
                 /** @var $card Card */
@@ -182,7 +182,7 @@ class HandAnalyser
             $cards = $cards->diff($pass);
         } while($pass->count() < 4);
 
-        return $pass->take(4);
+        return $pass->take(4)->toArray();
     }
 
     public function getPassBack($trump)
