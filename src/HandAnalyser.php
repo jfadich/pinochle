@@ -189,13 +189,18 @@ class HandAnalyser
     public function getPassBack($trump)
     {
         $suits = $this->getPlayingPower($trump, false)->sortBy('power');
-        $cards = $this->cards->sort(function($card) use($suits, $trump) {
+        $cards = $this->cards->sort(function(Card $card) use($suits, $trump) {
             return  $suits[$card->getSuit()]['power'] + $card->getRank();
         });
 
         $pass=collect([]);
 
         foreach($cards as $card) {
+            if($trump === Card::SUIT_SPADES || $trump === Card::SUIT_DIAMONDS) {
+                if( $card->isLegOfPinochle() )
+                    continue;
+            }
+
             if($card->isSuit($trump) || $card->isRank(Card::RANK_ACE))
                 continue;
 
@@ -205,7 +210,7 @@ class HandAnalyser
                 return $pass;
         }
 
-        return $pass;
+        return $pass; // TODO fix edge case for perfect hand with only trump and aces
     }
 
     public function getPlayingPower($trump, $sum = true)

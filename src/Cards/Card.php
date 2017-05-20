@@ -75,9 +75,14 @@ class Card implements \JsonSerializable
         return $this->getSuit() === $suit;
     }
 
-    public function isCard(Card $card)
+    public function isCard(Card $card) : bool
     {
         return $card->getValue() === $this->getValue();
+    }
+
+    public function isLegOfPinochle() : bool
+    {
+        return $this->isCard(new Card(Card::RANK_QUEEN, Card::SUIT_SPADES)) || $this->isCard(new Card(Card::RANK_JACK, Card::SUIT_DIAMONDS));
     }
 
     public function getSuitName($short = false) : string

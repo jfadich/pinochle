@@ -80,7 +80,7 @@ class Pinochle
 
         $current_bid = $auction->getCurrentBid();
 
-        if($bid !== 'pass' && $bid <= $current_bid['bid'])
+        if($bid !== 'pass' && $bid <= $current_bid)
             throw new PinochleRuleException('Bid must be larger than current bid');
 
         $this->game->addLog($seat->id, "{$seat->getPlayer()->getName()} bid $bid");
