@@ -209,7 +209,7 @@ class HandAnalyser
                 return $pass;
         }
 
-        return $pass; // TODO fix edge case for perfect hand with only trump and aces
+        return $pass->toArray(); // TODO fix edge case for perfect hand with only trump and aces
     }
 
     public function getPlayingPower($trump, $sum = true)

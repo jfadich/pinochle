@@ -207,17 +207,17 @@ class Pinochle
             return $this->setNextBidder();
 
         if(count($auction->getPassedSeats()) === 3) {
-            $round->setPhase(Round::PHASE_CALLING);
-            $auction->closeAuction();
-            //$round->buy()->merge($round->getCurrentBid(), ['seat', 'bid']);
-            $round->setLeadSeat($activeSeat);
-            //$round->lead_seat = $game->active_seat;
 
-            //$round->save();
-            //$game->save();
+            $game->addLog($nextPlayer->id, "{$nextPlayer->getName()} Wins the auction with a bid of {$auction->getCurrentBid()}");
+
+            $round->setPhase(Round::PHASE_CALLING);
+
+            $auction->closeAuction(); // TODO ?? is this still needed?
+
+            $round->setLeadSeat($activeSeat);
 
             if($nextPlayer->isAuto()) {
-                $this->callTrump($nextPlayer, $round->getAutoPlayerForSeat($activeSeat)->callTrump());
+                $this->callTrump($activeSeat, $round->getAutoPlayerForSeat($activeSeat)->callTrump());
                 return null;
             }
 
