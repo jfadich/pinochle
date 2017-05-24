@@ -206,7 +206,7 @@ class HandAnalyser
             $pass->push($card);
 
             if($pass->count() >= 4)
-                return $pass;
+                return $pass->toArray();
         }
 
         return $pass->toArray(); // TODO fix edge case for perfect hand with only trump and aces
@@ -241,7 +241,7 @@ class HandAnalyser
             }
 
             switch($rank)
-            {
+            { // TODO take  into account the total number of cards in suit
                 case Card::RANK_ACE:
                     $suitStats[$suit]['consecutive']++;
                     $suitStats[$suit]['power'] += ($suitStats[$suit]['aces'] * $this->acePower);
