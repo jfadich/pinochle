@@ -2,13 +2,13 @@
 
 namespace jfadich\Pinochle;
 
-use jfadich\Pinochle\Contracts\Seat;
 use jfadich\Pinochle\Exceptions\PinochleRuleException;
-use jfadich\Pinochle\Cards\Card;
-use jfadich\Pinochle\Cards\Deck;
-use jfadich\Pinochle\Contracts\Game;
 use jfadich\Pinochle\Contracts\Player;
 use jfadich\Pinochle\Contracts\Round;
+use jfadich\Pinochle\Contracts\Game;
+use jfadich\Pinochle\Contracts\Seat;
+use jfadich\Pinochle\Cards\Card;
+use jfadich\Pinochle\Cards\Deck;
 
 class Pinochle
 {
@@ -125,6 +125,7 @@ class Pinochle
 
         $isLeader = $round->getLeadSeat()->getPosition() === $this->game->getActiveSeat()->getPosition();
 
+        // Determine if we are passing to the bid winner or the partner
         if($isLeader) {
             $partner = $this->game->getNextSeat(1);
         } else {
@@ -138,21 +139,19 @@ class Pinochle
         $this->game->addLog($player->id, "{$player->getName()} passed cards to {$partner->getPlayer()->getName()}");
 
         if($isLeader) {
-            $this->game->getCurrentRound()->setPhase(Round::PHASE_MELDING);
+            $round->setPhase(Round::PHASE_MELDING);
+            $trump = $round->getTrump();
 
-            $this->game->getPlayers()->each(function($player) {
+            foreach ($this->game->getSeats() as $seat) {
 
-                $analysis = new HandAnalyser($player->getCurrentHand()->getCards());
-                $meld = $analysis->getMeld($this->game->currentRound->trump);
+                $analysis = $round->getAutoPlayerForSeat($partner);
 
-                $this->game->currentRound->meld()->set("players.{$player->seat}", $meld);
+                $round->addMeld($seat, $analysis->getMeld($trump));
 
                 if($player->isAuto()) {
-                    $this->game->currentRound->meld()->push('ready', $player->seat);
+                    $this->acceptMeld($partner);
                 }
-            });
-
-            $this->game->currentRound->save();
+            };
         } else {
             if($partner->getPlayer()->isAuto()) {
                 $pass = $round->getAutoPlayerForSeat($partner)->getPassBack($round->getTrump());
@@ -161,18 +160,18 @@ class Pinochle
         }
     }
 
-    public function acceptMeld($seat)
+    public function acceptMeld(Seat $seat)
     {
-        if(!$this->game->currentRound->isPhase(Round::PHASE_MELDING))
+        $round = $this->game->getCurrentRound();
+
+        if(!$round->isPhase(Round::PHASE_MELDING))
             throw new PinochleRuleException('Game is currently not melding');
 
-        $this->game->currentRound->meld()->push('ready', $seat);
+        $round->setMeldSeen($seat);
 
-        if(count($this->game->currentRound->meld('ready', [])) === 4) {
-            $this->game->currentRound->phase = Round::PHASE_PLAYING;
+        if(count($round->getMeldedSeats()) === 4) {
+            $round->setPhase(Round::PHASE_PLAYING);
         }
-
-        $this->game->currentRound->save();
     }
 
     public function playTrick(Player $player, Card $play)

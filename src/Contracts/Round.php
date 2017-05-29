@@ -53,6 +53,12 @@ interface Round
      */
     public function getPhase();
 
+    public function addMeld(Seat $seat, array $meld);
+
+    public function setMeldSeen(Seat $seat);
+
+    public function getMeldedSeats() : array;
+
     /**
      * @param string $phase
      * @return bool
