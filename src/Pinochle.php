@@ -104,7 +104,7 @@ class Pinochle
 
         $round->setPhase(Round::PHASE_PASSING);
 
-        $player = $this->game->getActiveSeat()->getPlayer();
+        $player = $seat->getPlayer();
 
         $this->game->addLog($player->id, "{$player->getName()} called {$trump->getSuitName()} for trump");
 
@@ -142,14 +142,14 @@ class Pinochle
             $round->setPhase(Round::PHASE_MELDING);
             $trump = $round->getTrump();
 
-            foreach ($this->game->getSeats() as $seat) {
+            foreach ($this->game->getSeats() as $meldSeat) {
 
                 $analysis = $round->getAutoPlayerForSeat($partner);
 
-                $round->addMeld($seat, $analysis->getMeld($trump));
+                $round->addMeld($meldSeat, $analysis->getMeld($trump));
 
                 if($player->isAuto()) {
-                    $this->acceptMeld($partner);
+                    $this->acceptMeld($seat);
                 }
             };
         } else {
@@ -168,6 +168,9 @@ class Pinochle
             throw new PinochleRuleException('Game is currently not melding');
 
         $round->setMeldSeen($seat);
+
+        $player = $seat->getPlayer();
+        $this->game->addLog($player->id, "{$player->getName()} ready");
 
         if(count($round->getMeldedSeats()) === 4) {
             $round->setPhase(Round::PHASE_PLAYING);
@@ -233,10 +236,15 @@ class Pinochle
 
     protected function validateGameState(Seat $seat, $phase)
     {
-        if(!$this->game->getCurrentRound()->isPhase($phase))
+        $round = $this->game->getCurrentRound();
+
+        if(!$round->isPhase($phase))
             throw new PinochleRuleException("Game is currently not $phase");
 
         if(!$this->game->seatIsActive($seat))
             throw new PinochleRuleException('It\'s not your turn');
+
+        if($phase === Round::PHASE_CALLING && $round->getLeadSeat()->getPosition() !== $seat->getPosition())
+            throw new PinochleRuleException('You must be the bid winner to call trump');
     }
 }
