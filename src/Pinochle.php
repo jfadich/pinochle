@@ -123,7 +123,7 @@ class Pinochle
 
         $round = $this->game->getCurrentRound();
 
-        $isLeader = $round->getLeadSeat()->getPosition() === $this->game->getActiveSeat()->getPosition();
+        $isLeader = $seat->getPosition() === $round->getLeadSeat()->getPosition();
 
         // Determine if we are passing to the bid winner or the partner
         if($isLeader) {
@@ -147,11 +147,11 @@ class Pinochle
                 $analysis = $round->getAutoPlayerForSeat($partner);
 
                 $round->addMeld($meldSeat, $analysis->getMeld($trump));
-
-                if($player->isAuto()) {
-                    $this->acceptMeld($seat);
-                }
             };
+
+            if($player->isAuto()) {
+                $this->acceptMeld($seat);
+            }
         } else {
             if($partner->getPlayer()->isAuto()) {
                 $pass = $round->getAutoPlayerForSeat($partner)->getPassBack($round->getTrump());
