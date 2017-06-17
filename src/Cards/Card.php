@@ -22,8 +22,15 @@ class Card implements \JsonSerializable
 
     private $value;
 
+    /**
+     * A cards value is a sum of the rank and suit.
+     * It can be constructed with either the rank and suit separately or just the sum.
+     * @param $rank
+     * @param null $suit
+     */
     public function __construct($rank, $suit = null)
     {
+        // If the suit is not provided assume the rank represents a precalculated card value
         if($suit === null) {
             $suit = $rank & self::MASK_SUIT;
             $rank = $rank & self::MASK_RANK;
@@ -62,7 +69,9 @@ class Card implements \JsonSerializable
 
     public function friendlyName($short = false) : string
     {
-        return $this->getRankName($short) .' of '. $this->getSuitName($short);
+        $preposition = !$short ? ' of ' : '';
+
+        return $this->getRankName($short) .$preposition. $this->getSuitName($short);
     }
 
     public function isRank(int $rank) : bool
@@ -88,17 +97,15 @@ class Card implements \JsonSerializable
     public function getSuitName($short = false) : string
     {
         $suits = static::getSuits($short);
-        $suit = $this->getSuit();
 
-        return $suits[$suit];
+        return $suits[$this->getSuit()];
     }
 
     public function getRankName($short = false) : string
     {
         $ranks = static::getRanks($short);
-        $rank = $this->getRank();
 
-        return $ranks[$rank];
+        return $ranks[$this->getRank()];
     }
 
     public function getRank() : int
