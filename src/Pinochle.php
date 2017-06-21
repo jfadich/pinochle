@@ -144,7 +144,7 @@ class Pinochle
 
             foreach ($this->game->getSeats() as $meldSeat) {
 
-                $analysis = $round->getAutoPlayerForSeat($partner);
+                $analysis = $round->getAutoPlayerForSeat($meldSeat);
 
                 $round->addMeld($meldSeat, $analysis->getMeld($trump));
             };
