@@ -147,10 +147,10 @@ class Pinochle
                 $analysis = $round->getAutoPlayerForSeat($meldSeat);
 
                 $round->addMeld($meldSeat, $analysis->getMeld($trump));
-            };
 
-            if($player->isAuto()) {
-                $this->acceptMeld($seat);
+                if($meldSeat->getPlayer()->isAuto()) {
+                    $this->acceptMeld($meldSeat);
+                }
             }
         } else {
             if($partner->getPlayer()->isAuto()) {
