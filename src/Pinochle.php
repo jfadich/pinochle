@@ -38,7 +38,7 @@ class Pinochle
 
     public function deal()
     {
-        if(count($this->game->getPlayers()) !== 4) {
+        if(count($this->game->getSeats()) !== 4) {
             throw new PinochleRuleException('Not Enough Players');
         }
 
@@ -54,10 +54,7 @@ class Pinochle
             if(!$seat)
                 throw new \Exception('Seat not filled');
 
-            $round->addHand($seat, [
-                'dealt' => $cards,
-                'current' => $cards,
-            ]);
+            $round->addHand($seat, $cards);
         });
 
         $round->setPhase(Round::PHASE_BIDDING);
@@ -123,7 +120,7 @@ class Pinochle
 
         $round = $this->game->getCurrentRound();
 
-        $isLeader = $seat->getPosition() === $round->getLeadSeat()->getPosition();
+        $isLeader = $seat->getPosition() === $round->getLeadPosition();
 
         // Determine if we are passing to the bid winner or the partner
         if($isLeader) {
@@ -144,13 +141,13 @@ class Pinochle
 
             foreach ($this->game->getSeats() as $meldSeat) {
 
-                $analysis = $round->getAutoPlayerForSeat($meldSeat);
+                $analysis = $round->getAutoPlayerForSeat($partner);
 
                 $round->addMeld($meldSeat, $analysis->getMeld($trump));
+            };
 
-                if($meldSeat->getPlayer()->isAuto()) {
-                    $this->acceptMeld($meldSeat);
-                }
+            if($player->isAuto()) {
+                $this->acceptMeld($seat);
             }
         } else {
             if($partner->getPlayer()->isAuto()) {
@@ -244,7 +241,7 @@ class Pinochle
         if(!$this->game->seatIsActive($seat))
             throw new PinochleRuleException('It\'s not your turn');
 
-        if($phase === Round::PHASE_CALLING && $round->getLeadSeat()->getPosition() !== $seat->getPosition())
+        if($phase === Round::PHASE_CALLING && $round->getLeadPosition() !== $seat->getPosition())
             throw new PinochleRuleException('You must be the bid winner to call trump');
     }
 }

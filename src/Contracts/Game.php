@@ -6,6 +6,13 @@ namespace jfadich\Pinochle\Contracts;
 interface Game
 {
     /**
+     * Get an array of all rounds.
+     *
+     * @return array
+     */
+    public function getRounds() : array;
+
+    /**
      * Get the current round or create the first one if none exist.
      * Return null if game is over.
      *
@@ -14,27 +21,13 @@ interface Game
     public function getCurrentRound() : ?Round;
 
     /**
-     * Get an array of all rounds.
-     *
-     * @return array
-     */
-    public function getRounds() : array;
-
-    /**
-     * Create a new player at the given seat.
+     * Create a seat seat for the player at the given position
      *
      * @param int $seat
-     * @param array $player
-     * @return Player|null
+     * @param Player $player
+     * @return Seat|null
      */
-    public function addPlayer(int $seat, array $player) : ?Player;
-
-    /**
-     * Get an array of current players
-     *
-     * @return array
-     */
-    public function getPlayers() : array;
+    public function seatPlayer(int $seat, Player $player) : ?Seat;
 
     /**
      * Get the player who is seated at the active seat
@@ -74,4 +67,6 @@ interface Game
     public function nextRound() : ?Round;
 
     public function seatIsActive(Seat $seat) : bool;
+
+    public function logTurn(Round $round, $action, $seat, $data);
 }

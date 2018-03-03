@@ -27,11 +27,12 @@ class Deck
         return new Deck($cards);
     }
 
-    public function deal()
+    public function deal($numberOfHands = 4)
     {
         $hands = collect();
+        $perHand = floor($this->cards / $numberOfHands);
 
-        $this->cards->shuffle()->chunk(12)->each(function($hand) use($hands) {
+        $this->cards->shuffle()->chunk($perHand)->each(function($hand) use($hands) {
             $hands->push($hand->sort()->reverse()->values());
         });
 

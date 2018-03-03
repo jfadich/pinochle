@@ -67,13 +67,6 @@ class MeldRules
             $suits = Card::getSuits();
         }
 
-        foreach($suits as $suit => $name) {
-            $this->addMeld($this->marriage($suit), "$name Marriage", 40);
-            $this->addMeld($this->run($suit), 'Run in Trump', 150);
-            $this->addMeld($this->run($suit)->merge($this->run($suit)), 'Double Run in Trump', 1500);
-            $this->addMeld($this->lowestTrump($suit), "Lowest Trump", 10);
-        }
-
         $this->addMeld($this->pinochle(), 'Pinochle', 40);
         $this->addMeld($this->pinochle()->merge($this->pinochle()), 'Double Pinochle', 300);
         $this->addMeld($this->fourOfAKind(Card::RANK_JACK), 'Forty Jacks', 40);
@@ -84,6 +77,13 @@ class MeldRules
         $this->addMeld($this->fourOfAKind(Card::RANK_KING)->merge($this->fourOfAKind(Card::RANK_KING)), 'Eight Hundred Kings', 80);
         $this->addMeld($this->fourOfAKind(Card::RANK_ACE), 'Hundred Aces', 100);
         $this->addMeld($this->fourOfAKind(Card::RANK_ACE)->merge($this->fourOfAKind(Card::RANK_ACE)), 'Thousand Aces', 1000);
+
+        foreach($suits as $suit => $name) {
+            $this->addMeld($this->marriage($suit), "$name Marriage", 40);
+            $this->addMeld($this->run($suit), 'Run in Trump', 150);
+            $this->addMeld($this->run($suit)->merge($this->run($suit)), 'Double Run in Trump', 1500);
+            $this->addMeld($this->lowestTrump($suit), "Lowest Trump", 10);
+        }
 
         return $this->meldTable;
     }

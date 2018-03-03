@@ -18,10 +18,10 @@ interface Round
 
     /**
      * @param Seat $seat
-     * @param array $hand
+     * @param array $cards
      * @return Hand
      */
-    public function addHand(Seat $seat, array $hand) : Hand;
+    public function addHand(Seat $seat, array $cards) : Hand;
 
     /**
      * @return array
@@ -46,7 +46,7 @@ interface Round
 
     public function setLeadSeat(Seat $seat);
 
-    public function getLeadSeat(): Seat;
+    public function getLeadPosition(): int;
 
     /**
      * @return string
