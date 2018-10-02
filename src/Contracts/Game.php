@@ -42,6 +42,8 @@ interface Game
 
     public function getSeats() : array;
 
+    public function setActiveSeat(Seat $seat);
+
     /**
      * Set the active seat to the next player. If $sameTeam is 1, set the active seat to the next player on the same
      * team as the current active player.

@@ -5,6 +5,8 @@ namespace jfadich\Pinochle\Contracts;
 
 interface Auction
 {
+
+    public function open(Seat $seat);
     /**
      *
      *

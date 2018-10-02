@@ -30,10 +30,10 @@ class Deck
     public function deal($numberOfHands = 4)
     {
         $hands = collect();
-        $perHand = floor($this->cards / $numberOfHands);
+        $perHand = floor($this->cards->count() / $numberOfHands);
 
         $this->cards->shuffle()->chunk($perHand)->each(function($hand) use($hands) {
-            $hands->push($hand->sort()->reverse()->values());
+            $hands->push($hand->sort()->reverse()->values()->toArray());
         });
 
         return $hands;

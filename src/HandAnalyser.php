@@ -36,8 +36,6 @@ class HandAnalyser
 
         $trumpSuit = $trump->getSuit();
 
-        $this->checkMeld(MeldRules::pinochle(), 40, 300);
-
         if(!$this->checkMeld(MeldRules::run($trumpSuit), 150)) {
             $this->checkMeld(MeldRules::marriage($trumpSuit), 40, 80);
         }
@@ -48,6 +46,8 @@ class HandAnalyser
 
             $this->checkMeld(MeldRules::marriage($suit), 20, 40);
         }
+
+        $this->checkMeld(MeldRules::pinochle(), 40, 300);
 
         $this->checkMeld(MeldRules::lowestTrump($trumpSuit), 10, 20);
         $this->checkMeld(MeldRules::fourOfAKind(Card::RANK_ACE), 100);

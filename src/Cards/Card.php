@@ -89,6 +89,15 @@ class Card implements \JsonSerializable
         return $card->getValue() === $this->getValue();
     }
 
+    public function isSameSuit($card)
+    {
+        if( !$card instanceof Card) {
+            $card = new Card($card);
+        }
+
+        return $this->getSuit() === $card->getSuit();
+    }
+
     public function isLegOfPinochle() : bool
     {
         return $this->isCard(new Card(Card::RANK_QUEEN, Card::SUIT_SPADES)) || $this->isCard(new Card(Card::RANK_JACK, Card::SUIT_DIAMONDS));
@@ -121,6 +130,16 @@ class Card implements \JsonSerializable
     public function getValue() : int
     {
         return $this->value;
+    }
+
+    public function transform()
+    {
+        return [
+            'id'    => $this->getValue(),
+            'rank'  => $this->getRankName(),
+            'suit'  => $this->getSuitName(),
+            'shortRank' => $this->getRankName(true)
+        ];
     }
 
     public function __toString() : string

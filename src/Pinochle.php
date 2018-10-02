@@ -2,9 +2,16 @@
 
 namespace jfadich\Pinochle;
 
+use App\Events\GameEvents\GameStarted;
+use App\Events\GameEvents\HandDealt;
+use App\Events\GameEvents\NewPhaseStarted;
+use App\Events\GameEvents\PartnerPassed;
+use App\Events\GameEvents\PlayerSeenMeld;
+use App\Events\GameEvents\TrumpCalled;
 use jfadich\Pinochle\Exceptions\PinochleRuleException;
 use jfadich\Pinochle\Contracts\Player;
 use jfadich\Pinochle\Contracts\Round;
+use App\Events\GameEvents\BidPlaced;
 use jfadich\Pinochle\Contracts\Game;
 use jfadich\Pinochle\Contracts\Seat;
 use jfadich\Pinochle\Cards\Card;
@@ -36,7 +43,7 @@ class Pinochle
         return $this->game;
     }
 
-    public function deal()
+    public function deal(Seat $seat)
     {
         if(count($this->game->getSeats()) !== 4) {
             throw new PinochleRuleException('Not Enough Players');
@@ -46,6 +53,10 @@ class Pinochle
             throw new PinochleRuleException('Game has already started.');
 
         $round = $this->game->nextRound();
+        $round->setLeadSeat($seat);
+        $this->game->setActiveSeat($seat);
+
+        broadcast(new GameStarted(clone $this->game, $seat));
 
         $hands = Deck::make()->deal();
         $hands->each(function($cards, $key) use($round) {
@@ -55,10 +66,28 @@ class Pinochle
                 throw new \Exception('Seat not filled');
 
             $round->addHand($seat, $cards);
+
+            broadcast(new HandDealt(clone $this->game, $seat, $cards)); // @todo why clone?
         });
 
         $round->setPhase(Round::PHASE_BIDDING);
-        $this->game->setNextSeat(1);
+
+        broadcast(new NewPhaseStarted(clone $this->game, Round::PHASE_BIDDING, $seat->getPlayer()->getName(). ' dealt'));
+
+        $next = $this->game->setNextSeat();
+
+        $round->getAuction()->open($next);
+
+        $nextSeat = $this->game->setNextSeat();
+
+        $round->save();
+
+        if( $nextSeat->getPlayer()->isAuto() ) {
+            $player = $round->getAutoPlayerForSeat($nextSeat);
+            $nextBid = $player->getNextBid($round->getAuction(), $this->game->getNextSeat(1));
+
+            $this->placeBid($nextSeat, $nextBid);
+        }
 
         return $this;
     }
@@ -80,10 +109,13 @@ class Pinochle
         if($bid !== 'pass' && $bid <= $current_bid)
             throw new PinochleRuleException('Bid must be larger than current bid');
 
-        $this->game->addLog($seat->id, "{$seat->getPlayer()->getName()} bid $bid");
         $auction->placeBid($seat, $bid);
 
         $this->setNextBidder();
+
+        broadcast(new BidPlaced($this->game, $seat, $bid));
+
+        $this->resolveBid();
 
         return $bid;
     }
@@ -101,11 +133,9 @@ class Pinochle
 
         $round->setPhase(Round::PHASE_PASSING);
 
-        $player = $seat->getPlayer();
-
-        $this->game->addLog($player->id, "{$player->getName()} called {$trump->getSuitName()} for trump");
-
         $nextSeat = $this->game->setNextSeat(1);
+
+        broadcast(new TrumpCalled($this->game, $seat, $trump));
 
         if($nextSeat->getPlayer()->isAuto()) {
             $pass = $round->getAutoPlayerForSeat($nextSeat)->getPass($trump);
@@ -132,29 +162,31 @@ class Pinochle
         $pass = $round->getHandForSeat($seat)->takeCards($pass);
         $round->getHandForSeat($partner)->addCards($pass);
 
-        $player = $seat->getPlayer();
-        $this->game->addLog($player->id, "{$player->getName()} passed cards to {$partner->getPlayer()->getName()}");
+        broadcast(new PartnerPassed($this->game, $seat, $pass));
 
         if($isLeader) {
             $round->setPhase(Round::PHASE_MELDING);
             $trump = $round->getTrump();
+
+            broadcast(new NewPhaseStarted($this->game, $seat, Round::PHASE_MELDING));
 
             foreach ($this->game->getSeats() as $meldSeat) {
 
                 $analysis = $round->getAutoPlayerForSeat($partner);
 
                 $round->addMeld($meldSeat, $analysis->getMeld($trump));
-            };
 
-            if($player->isAuto()) {
-                $this->acceptMeld($seat);
-            }
+                if($meldSeat->getPlayer()->isAuto()) {
+                    $this->acceptMeld($meldSeat);
+                }
+            };
         } else {
             if($partner->getPlayer()->isAuto()) {
                 $pass = $round->getAutoPlayerForSeat($partner)->getPassBack($round->getTrump());
                 $this->passCards($partner, $pass);
             }
         }
+
     }
 
     public function acceptMeld(Seat $seat)
@@ -166,54 +198,73 @@ class Pinochle
 
         $round->setMeldSeen($seat);
 
+        broadcast(new PlayerSeenMeld($this->game, $seat));
+
         $player = $seat->getPlayer();
         $this->game->addLog($player->id, "{$player->getName()} ready");
 
         if(count($round->getMeldedSeats()) === 4) {
             $round->setPhase(Round::PHASE_PLAYING);
+            broadcast(new NewPhaseStarted($this->game, Round::PHASE_PLAYING));
         }
     }
 
-    public function playTrick(Player $player, Card $play)
+    public function playTrick(Seat $seat, Card $play)
     {
-        $this->validateGameState($player, Round::PHASE_PLAYING);
+        $this->validateGameState($seat, Round::PHASE_PLAYING);
 
-        if($this->game->getCurrentRound()->active_seat === $this->game->getCurrentRound()->lead_seat) {
+        $round = $this->game->getCurrentRound();
+        $hand = $round->getHandForSeat($seat);
+        $tricks = new TrickRules($round->play_area(), collect($hand->getCurrentCards()), $round->getTrump());
 
-            $this->game->getCurrentRound()->play_area('lease_suit', $play->getSuit());
-            $this->game->getCurrentRound()->play_area('plays', [$play->getSuit()]);
-            $this->game->getCurrentRound()->save();
-
-            return $this->setNextPlayer();
+        if( !$tricks->canPlayTrick($play) ) {
+            throw new PinochleRuleException('Not a valid play');
         }
 
+        $hand->takeCards([$play]);
 
+        if($round->play_area()->isEmpty('active.plays') && $this->game->active_seat === $round->lead_seat) {
+            $round->play_area()->set('active.lead.card', $play);
+            $round->play_area()->set('active.lead.seat', $this->game->active_seat);
+        }
+
+        $round->play_area()->push('active.plays',[
+            'seat'  => $seat->getPosition(),
+            'card'  => $play,
+            'order' => 1
+        ]);
+        $nextPlayer = $this->game->setNextSeat();
+
+        // check if next player is auto
+
+        // check if trick is complete and move to the next round of tricks5
     }
 
     protected function setNextBidder()
     {
         $game = $this->game;
+        $auction = $game->getCurrentRound()->getAuction();
+        $activeSeat = $game->setNextSeat();
+
+        if($auction->seatHasPassed($activeSeat))
+            $this->setNextBidder();
+    }
+
+    protected function resolveBid()
+    {
+        $game = $this->game;
         $round = $game->getCurrentRound();
         $auction = $round->getAuction();
 
-        $game->setNextSeat();
-
         $activeSeat = $game->getActiveSeat();
-        $nextPlayer = $game->getCurrentPlayer();
-
-
-        if($auction->seatHasPassed($activeSeat))
-            return $this->setNextBidder();
+        $nextPlayer = $activeSeat->getPlayer();
 
         if(count($auction->getPassedSeats()) === 3) {
-
-            $game->addLog($nextPlayer->id, "{$nextPlayer->getName()} Wins the auction with a bid of {$auction->getCurrentBid()}");
-
             $round->setPhase(Round::PHASE_CALLING);
 
-            $auction->closeAuction(); // TODO ?? is this still needed?
-
             $round->setLeadSeat($activeSeat);
+
+            broadcast(new NewPhaseStarted($this->game,Round::PHASE_CALLING, "{$nextPlayer->getName()} wins the auction with a bid of {$auction->getCurrentBid()}"));
 
             if($nextPlayer->isAuto()) {
                 $this->callTrump($activeSeat, $round->getAutoPlayerForSeat($activeSeat)->callTrump());

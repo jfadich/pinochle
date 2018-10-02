@@ -24,6 +24,9 @@ class AutoPlayer
 
     public function getMaxBid()
     {
+        if($this->store->has('maxBid'))
+            return $this->store->get('maxBid');
+
         $trump = $this->callTrump();
 
         $potential = $this->analyser->getMeldPotential($trump);
@@ -31,7 +34,10 @@ class AutoPlayer
         $wishlist = $this->analyser->getMeldWishList($trump, false);
         $safety = 2 - $wishlist->count();
 
-        return $power + (($potential['total'] + ($safety * 12)) );
+        $maxBid = $power + (($potential['total'] + ($safety * 12)) );
+        $this->store->set('maxBid', $maxBid);
+
+        return $maxBid;
     }
 
     public function callTrump()
